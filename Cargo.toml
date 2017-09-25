@@ -12,6 +12,10 @@
   repository = "https://github.com/echelon/crontab.rs"
   version = "0.0.0"
 
+[dependencies]
+  regex = "~0.2"
+  time = "~0.1"
+
 [dev-dependencies]
   expectest = "0.9.1"
 
