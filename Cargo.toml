@@ -2,9 +2,7 @@
   name = "crontab"
   authors = [ "Brandon Thomas <bt@brand.io>", "Brandon Thomas <echelon@gmail.com>" ]
   categories = ["date-and-time"]
-  description = """
-    A lightweight crontab parser. Version 0.0.0 is published as a placeholder.
-  """
+  description = "A lightweight crontab parser."
   documentation = "https://docs.rs/crontab"
   keywords = [ "cron", "crontab", "schedule", "scheduler" ]
   license = "BSD-4-Clause"
@@ -12,9 +10,12 @@
   repository = "https://github.com/echelon/crontab.rs"
   version = "0.0.0"
 
+[dependencies]
+  regex = "~0.2"
+  time = "~0.1"
+
 [dev-dependencies]
   expectest = "0.9.1"
 
 [badges]
   travis-ci = { repository = "echelon/crontab.rs" }
-
