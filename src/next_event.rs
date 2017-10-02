@@ -580,4 +580,40 @@ mod tests {
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2005, 1, 1, 0, 0, 0)));
   }
+
+  #[test]
+  fn every_hour_in_january_and_july() {
+    // Every single hour in January and July.
+    let schedule = Scheduler::new("0 * * 1,7 *").ok().unwrap();
+
+    // Last minute of December
+    let tm = get_tm(2005, 12, 31, 23, 59, 59);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2006, 1, 1, 0, 0, 0)));
+
+    // First hour of January... advances to the next hour
+    let tm = get_tm(2005, 1, 1, 0, 0, 0);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2005, 1, 1, 1, 0, 0)));
+
+    // Noon January 15th... advances to the next hour
+    let tm = get_tm(2005, 1, 15, 12, 0, 0);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2005, 1, 15, 13, 0, 0)));
+
+    // Last minute of January... advances to July.
+    let tm = get_tm(2005, 1, 31, 23, 59, 59);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2005, 7, 1, 0, 0, 0)));
+
+    // First hour of July... advances to the next hour
+    let tm = get_tm(2005, 7, 1, 0, 0, 0);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2005, 7, 1, 1, 0, 0)));
+
+    // Last hour of July... advances to next year's January
+    let tm = get_tm(2005, 7, 31, 23, 59, 59);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2006, 1, 1, 0, 0, 0)));
+  }
 }
