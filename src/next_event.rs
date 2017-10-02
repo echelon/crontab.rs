@@ -565,9 +565,19 @@ mod tests {
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2004, 2, 1, 0, 0, 0)));
 
-    // Advances the month
+    // A few hours late... advances the month.
     let tm = get_tm(2004, 1, 1, 12, 59, 59);
     let next = calculate_next_event(&schedule, &tm).unwrap();
-    //expect!(normal(&next)).to(be_equal_to(get_tm(2004, 2, 1, 0, 0, 0)));
+    expect!(normal(&next)).to(be_equal_to(get_tm(2004, 2, 1, 0, 0, 0)));
+
+    // Halfway through month advances the month.
+    let tm = get_tm(2004, 1, 15, 0, 0, 0);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2004, 2, 1, 0, 0, 0)));
+
+    // Halfway through month at end of year advances the year.
+    let tm = get_tm(2004, 12, 15, 0, 0, 0);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2005, 1, 1, 0, 0, 0)));
   }
 }
