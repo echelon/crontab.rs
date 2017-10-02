@@ -14,47 +14,116 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
   adv_minute(&mut next_time);
 
   loop /* YEARS */ {
+    println!("Try years");
 
+    let mut break_months = false;
     loop /* MONTHS */ {
+      println!("Try months");
 
-      match try_month(scheduler, &mut next_time) {
-        DateTimeMatch::PreciseMatch => {}, // Continue
-        DateTimeMatch::Missed => {
-          println!("Missed month");
-          break;
-        }, // Break out
-        DateTimeMatch::AnswerFound(upcoming) => return Some(upcoming),
-      }
-
-      loop /* DAYS */ {
-
-        match try_day(scheduler, &mut next_time) {
-          DateTimeMatch::PreciseMatch => {}, // Continue
-          DateTimeMatch::Missed => break, // Break out
-          DateTimeMatch::AnswerFound(upcoming) => return Some(upcoming),
-        }
-
-        loop /* HOURS */ {
-          match try_hour(scheduler, &mut next_time) {
-            DateTimeMatch::PreciseMatch => {}, // Continue
-            DateTimeMatch::Missed => break, // Break out
-            DateTimeMatch::AnswerFound(upcoming) => return Some(upcoming),
-          }
-
-          loop /* MINUTES */ {
-            match try_minute(scheduler, &mut next_time) {
-              DateTimeMatch::PreciseMatch => {}, // Uhh... this is braindead
-              DateTimeMatch::Missed => break, // Break out
-              DateTimeMatch::AnswerFound(upcoming) => return Some(upcoming),
-            }
-
-            break;
-          }
-          break;
-        }
+      if break_months {
+        println!("break months");
         break;
       }
-      break;
+
+      match try_month(scheduler, &mut next_time) {
+        DateTimeMatch::PreciseMatch => {
+          println!("Month precise match - continue matching.");
+        }, // Continue
+        DateTimeMatch::Missed => {
+          println!("Missed month - break, advance year");
+          break_months = true;
+          continue
+        }, // Break out
+        DateTimeMatch::AnswerFound(upcoming) => {
+          println!("Answer found (month) - we're done");
+          return Some(upcoming)
+        },
+      }
+
+      let mut break_days = false;
+      loop /* DAYS */ {
+        println!("Try days");
+
+        if break_days {
+          println!("break days");
+          break;
+        }
+
+        match do_try_day(scheduler, &mut next_time) {
+          DateTimeMatch::PreciseMatch => {
+            println!("Day precise match - continue matching.");
+          }, // Continue
+          DateTimeMatch::Missed => {
+            println!("Missed day - break, advance month");
+            break_days = true;
+            continue
+          }, // Break out
+          DateTimeMatch::AnswerFound(upcoming) => {
+            println!("Answer found (day) - we're done");
+            return Some(upcoming)
+          },
+        }
+
+        let mut break_hours = false;
+        loop /* HOURS */ {
+          println!("Try hours");
+
+          if break_hours {
+            println!("break hours");
+            break;
+          }
+
+          match do_try_hour(scheduler, &mut next_time) {
+            DateTimeMatch::PreciseMatch => {
+              println!("Hour precise match - continue matching.");
+            }, // Continue
+            DateTimeMatch::Missed => {
+              println!("Missed hour - break, advance day");
+              break_hours = true;
+              continue
+            }, // Break out
+            DateTimeMatch::AnswerFound(upcoming) => {
+              println!("Answer found (hour) - we're done");
+              return Some(upcoming)
+            },
+          }
+
+          let mut break_minutes = false;
+          loop /* MINUTES */ {
+            println!("Try minutes");
+
+            if break_minutes {
+              println!("break minutes");
+              break;
+            }
+
+            match do_try_minute(scheduler, &mut next_time) {
+              DateTimeMatch::PreciseMatch => {
+                println!("Minute precise match - uh... wat");
+                break_minutes = true; // WAT
+              }, // Uhh... this is braindead
+              DateTimeMatch::Missed => {
+                println!("Missed minute - break, advance hour");
+                break_minutes = true;
+                continue
+              }, // Break out
+              DateTimeMatch::AnswerFound(upcoming) => {
+                println!("Answer found (minute) - we're done");
+                return Some(upcoming)
+              },
+            }
+
+            //break;
+
+          }
+          //break;
+          //break_hours = true;
+        }
+        //break;
+        //break_days = true;
+      }
+      //break;
+      //break_months = true;
     }
 
     let mut use_time = next_time.clone();
@@ -174,6 +243,61 @@ fn try_hour(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
         DateTimeMatch::Missed
       }
     }
+  }
+}
+
+fn do_try_day(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
+  match try_day(scheduler, time) {
+    DateTimeMatch::Missed => {
+      time.tm_mday = 1; // Reset day (1-indexed)
+      time.tm_hour = 0; // Reset hour
+      time.tm_min = 0; // Reset minute
+      time.tm_sec = 0; // Reset second
+      adv_month(time);
+      DateTimeMatch::Missed
+    },
+    DateTimeMatch::AnswerFound(ret) => {
+      DateTimeMatch::AnswerFound(ret)
+    },
+    DateTimeMatch::PreciseMatch => {
+      DateTimeMatch::PreciseMatch
+    },
+  }
+}
+
+fn do_try_hour(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
+  match try_hour(scheduler, time) {
+    DateTimeMatch::Missed => {
+      time.tm_hour = 0; // Reset hour
+      time.tm_min = 0; // Reset minute
+      time.tm_sec = 0; // Reset second
+      adv_day(time);
+      DateTimeMatch::Missed
+    },
+    DateTimeMatch::AnswerFound(ret) => {
+      DateTimeMatch::AnswerFound(ret)
+    },
+    DateTimeMatch::PreciseMatch => {
+      DateTimeMatch::PreciseMatch
+    },
+  }
+}
+
+fn do_try_minute(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
+  match try_minute(scheduler, time) {
+    DateTimeMatch::Missed => {
+      time.tm_min = 0; // Reset minute
+      time.tm_sec = 0; // Reset second
+      adv_hour(time);
+      DateTimeMatch::Missed
+    },
+    DateTimeMatch::AnswerFound(ret) => {
+      DateTimeMatch::AnswerFound(ret)
+    },
+    DateTimeMatch::PreciseMatch => {
+      // TODO/FIXME: Impossible branch.
+      DateTimeMatch::AnswerFound(time.clone())
+    },
   }
 }
 
@@ -359,31 +483,37 @@ mod tests {
     let schedule = Scheduler::new("*/15 * * * *").ok().unwrap();
 
     // Minute before :15 (2017-05-15 11:14)
+    println!("==== Example 1 ====");
     let tm = get_tm(2017, 5, 15, 11, 14, 0);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 5, 15, 11, 15, 0)));
 
     // Minute after :15 (2017-05-15 11:16)
+    println!("==== Example 2 ====");
     let tm = get_tm(2017, 5, 15, 11, 16, 0);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 5, 15, 11, 30, 0)));
 
     // Minute after :30 (2017-05-15 11:31)
+    println!("==== Example 3 ====");
     let tm = get_tm(2017, 5, 15, 11, 31, 0);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 5, 15, 11, 45, 0)));
 
     // Minute before :00 (2017-10-15 23:59)
+    println!("==== Example 4 ====");
     let tm = get_tm(2017, 10, 15, 23, 59, 0);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 10, 16, 0, 0, 0)));
 
     // Two minutes before New Year (2017-12-31 23:58)
+    println!("==== Example 5 ====");
     let tm = get_tm(2017, 12, 31, 23, 58, 0);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2018, 1, 1, 0, 0, 0)));
 
     // Minute before New Year (2017-12-31 23:59)
+    println!("==== Example 6 ====");
     let tm = get_tm(2017, 12, 31, 23, 59, 0);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2018, 1, 1, 0, 0, 0)));
