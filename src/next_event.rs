@@ -375,12 +375,9 @@ fn adv_hour(time: &mut Tm) {
 }
 
 fn adv_minute(time: &mut Tm) {
-  println!("{}", time.tm_min);
   time.tm_min += 1;
-  println!("{}", time.tm_min);
   if time.tm_min > 59 {
     time.tm_min = 0;
-    println!("{}", time.tm_min);
     adv_hour(time);
   }
 }
@@ -475,37 +472,31 @@ mod tests {
     let schedule = Scheduler::new("*/15 * * * *").ok().unwrap();
 
     // Minute before :15 (2017-05-15 11:14)
-    println!("==== Example 1 ====");
     let tm = get_tm(2017, 5, 15, 11, 14, 0);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 5, 15, 11, 15, 0)));
 
     // Minute after :15 (2017-05-15 11:16)
-    println!("==== Example 2 ====");
     let tm = get_tm(2017, 5, 15, 11, 16, 0);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 5, 15, 11, 30, 0)));
 
     // Minute after :30 (2017-05-15 11:31)
-    println!("==== Example 3 ====");
     let tm = get_tm(2017, 5, 15, 11, 31, 0);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 5, 15, 11, 45, 0)));
 
     // Minute before :00 (2017-10-15 23:59)
-    println!("==== Example 4 ====");
     let tm = get_tm(2017, 10, 15, 23, 59, 0);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 10, 16, 0, 0, 0)));
 
     // Two minutes before New Year (2017-12-31 23:58)
-    println!("==== Example 5 ====");
     let tm = get_tm(2017, 12, 31, 23, 58, 0);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2018, 1, 1, 0, 0, 0)));
 
     // Minute before New Year (2017-12-31 23:59)
-    println!("==== Example 6 ====");
     let tm = get_tm(2017, 12, 31, 23, 59, 0);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2018, 1, 1, 0, 0, 0)));
@@ -615,5 +606,41 @@ mod tests {
     let tm = get_tm(2005, 7, 31, 23, 59, 59);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2006, 1, 1, 0, 0, 0)));
+  }
+
+  #[test]
+  fn new_years() {
+    // At the New Year's ball drop.
+    let schedule = Scheduler::new("0 0 1 1 *").ok().unwrap();
+
+    // Last minute of December
+    let tm = get_tm(2007, 12, 31, 23, 59, 59);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2008, 1, 1, 0, 0, 0)));
+
+    // Minute zero of the new year... advances to next year
+    let tm = get_tm(2007, 1, 1, 0, 0, 0);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2008, 1, 1, 0, 0, 0)));
+
+    // Minute five of the new year... advances to next year
+    let tm = get_tm(2007, 1, 1, 0, 5, 0);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2008, 1, 1, 0, 0, 0)));
+
+    // Hour one of the new year... advances to next year
+    let tm = get_tm(2007, 1, 1, 1, 0, 0);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2008, 1, 1, 0, 0, 0)));
+
+    // Day two of the new year... advances to next year
+    let tm = get_tm(2007, 1, 2, 0, 0, 0);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2008, 1, 1, 0, 0, 0)));
+
+    // July advances to the next year
+    let tm = get_tm(2007, 7, 1, 0, 0, 0);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2008, 1, 1, 0, 0, 0)));
   }
 }
