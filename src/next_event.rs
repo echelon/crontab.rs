@@ -7,6 +7,8 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
 
   let mut next_time = time.clone();
 
+  println!("Schedule: {:?}", scheduler.times);
+
   // Minute-resolution. We're always going to round up to the next minute.
   next_time.tm_sec = 0;
   adv_minute(&mut next_time);
@@ -17,7 +19,10 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
 
       match try_month(scheduler, &mut next_time) {
         DateTimeMatch::PreciseMatch => {}, // Continue
-        DateTimeMatch::Missed => break, // Break out
+        DateTimeMatch::Missed => {
+          println!("Missed month");
+          break;
+        }, // Break out
         DateTimeMatch::AnswerFound(upcoming) => return Some(upcoming),
       }
 
@@ -426,5 +431,21 @@ mod tests {
     let tm = get_tm(2017, 11, 15, 10, 30, 15);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2018, 10, 13, 22, 45, 0)));
+  }
+
+  #[test]
+  fn first_of_the_month() {
+    // First of the month at 0:00.
+    let schedule = Scheduler::new("0 0 1 * *").ok().unwrap();
+
+    // A minute late... advances the month.
+    let tm = get_tm(2004, 1, 1, 0, 1, 59);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2004, 2, 1, 0, 0, 0)));
+
+    // Advances the month
+    let tm = get_tm(2004, 1, 1, 12, 59, 59);
+    let next = calculate_next_event(&schedule, &tm).unwrap();
+    //expect!(normal(&next)).to(be_equal_to(get_tm(2004, 2, 1, 0, 0, 0)));
   }
 }
