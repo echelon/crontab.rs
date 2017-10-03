@@ -116,21 +116,6 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
         }
       }
     }
-
-    let mut use_time = next_time.clone();
-
-    use_time.tm_year = use_time.tm_year + 1;
-    // Tm month range is [0, 11], Cron months are [1, 12]
-    use_time.tm_mon = (scheduler.times.months.get(0).unwrap().clone() - 1) as i32;
-    // Tm day range is [1, 31]
-    use_time.tm_mday = scheduler.times.days.get(0).unwrap().clone() as i32;
-    // Tm hour range is [0, 23]
-    use_time.tm_hour = scheduler.times.hours.get(0).unwrap().clone() as i32;
-    // Tm minute range is [0, 59]
-    use_time.tm_min = scheduler.times.minutes.get(0).unwrap().clone() as i32;
-    use_time.tm_sec = 0; // Second resolution
-
-    return Some(use_time);
   }
 
   Some(next_time)
@@ -172,6 +157,18 @@ fn try_month(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
       } else {
         // Skipped beyond. Pop to last unit and use next value.
         println!("Not found, pos: {}", pos);
+
+        time.tm_year = time.tm_year + 1;
+        // Tm month range is [0, 11], Cron months are [1, 12]
+        time.tm_mon = (scheduler.times.months.get(0).unwrap().clone() - 1) as i32;
+        // Tm day range is [1, 31]
+        time.tm_mday = scheduler.times.days.get(0).unwrap().clone() as i32;
+        // Tm hour range is [0, 23]
+        time.tm_hour = scheduler.times.hours.get(0).unwrap().clone() as i32;
+        // Tm minute range is [0, 59]
+        time.tm_min = scheduler.times.minutes.get(0).unwrap().clone() as i32;
+        time.tm_sec = 0; // Second resolution
+
         DateTimeMatch::Missed
       }
     }
