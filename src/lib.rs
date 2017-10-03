@@ -10,3 +10,4 @@ extern crate expectest;
 mod error;
 mod next_event;
 mod scheduler;
+mod times;
