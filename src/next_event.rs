@@ -20,19 +20,13 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
     loop /* MONTHS */ {
       println!("Try months");
 
-      if break_months {
-        println!("break months");
-        break;
-      }
-
       match try_month(scheduler, &mut next_time) {
         DateTimeMatch::PreciseMatch => {
           println!("Month precise match - continue matching.");
         }, // Continue
         DateTimeMatch::Missed => {
           println!("Missed month - break, advance year");
-          break_months = true;
-          continue
+          break;
         }, // Break out
         DateTimeMatch::AnswerFound(upcoming) => {
           println!("Answer found (month) - we're done");
@@ -40,14 +34,8 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
         },
       }
 
-      let mut break_days = false;
       loop /* DAYS */ {
         println!("Try days");
-
-        if break_days {
-          println!("break days");
-          break;
-        }
 
         match try_day(scheduler, &mut next_time) {
           DateTimeMatch::PreciseMatch => {
@@ -55,8 +43,7 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
           }, // Continue
           DateTimeMatch::Missed => {
             println!("Missed day - break, advance month");
-            break_days = true;
-            continue
+            break;
           }, // Break out
           DateTimeMatch::AnswerFound(upcoming) => {
             println!("Answer found (day) - we're done");
@@ -64,14 +51,8 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
           },
         }
 
-        let mut break_hours = false;
         loop /* HOURS */ {
           println!("Try hours");
-
-          if break_hours {
-            println!("break hours");
-            break;
-          }
 
           match try_hour(scheduler, &mut next_time) {
             DateTimeMatch::PreciseMatch => {
@@ -79,8 +60,7 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
             }, // Continue
             DateTimeMatch::Missed => {
               println!("Missed hour - break, advance day");
-              break_hours = true;
-              continue
+              break;
             }, // Break out
             DateTimeMatch::AnswerFound(upcoming) => {
               println!("Answer found (hour) - we're done");
@@ -88,31 +68,21 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
             },
           }
 
-          let mut break_minutes = false;
-          loop /* MINUTES */ {
-            println!("Try minutes");
-
-            if break_minutes {
-              println!("break minutes");
+          match try_minute(scheduler, &mut next_time) {
+            DateTimeMatch::PreciseMatch => {
+              println!("Minute precise match - uh... wat");
               break;
-            }
-
-            match try_minute(scheduler, &mut next_time) {
-              DateTimeMatch::PreciseMatch => {
-                println!("Minute precise match - uh... wat");
-                break_minutes = true; // WAT
-              }, // Uhh... this is braindead
-              DateTimeMatch::Missed => {
-                println!("Missed minute - break, advance hour");
-                break_minutes = true;
-                continue
-              }, // Break out
-              DateTimeMatch::AnswerFound(upcoming) => {
-                println!("Answer found (minute) - we're done");
-                return Some(upcoming)
-              },
-            }
+            }, // Uhh... this is braindead
+            DateTimeMatch::Missed => {
+              println!("Missed minute - break, advance hour");
+              break;
+            }, // Break out
+            DateTimeMatch::AnswerFound(upcoming) => {
+              println!("Answer found (minute) - we're done");
+              return Some(upcoming)
+            },
           }
+
         }
       }
     }
