@@ -49,7 +49,7 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
           break;
         }
 
-        match do_try_day(scheduler, &mut next_time) {
+        match try_day(scheduler, &mut next_time) {
           DateTimeMatch::PreciseMatch => {
             println!("Day precise match - continue matching.");
           }, // Continue
@@ -73,7 +73,7 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
             break;
           }
 
-          match do_try_hour(scheduler, &mut next_time) {
+          match try_hour(scheduler, &mut next_time) {
             DateTimeMatch::PreciseMatch => {
               println!("Hour precise match - continue matching.");
             }, // Continue
@@ -97,7 +97,7 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
               break;
             }
 
-            match do_try_minute(scheduler, &mut next_time) {
+            match try_minute(scheduler, &mut next_time) {
               DateTimeMatch::PreciseMatch => {
                 println!("Minute precise match - uh... wat");
                 break_minutes = true; // WAT
@@ -112,18 +112,9 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
                 return Some(upcoming)
               },
             }
-
-            //break;
-
           }
-          //break;
-          //break_hours = true;
         }
-        //break;
-        //break_days = true;
       }
-      //break;
-      //break_months = true;
     }
 
     let mut use_time = next_time.clone();
@@ -149,54 +140,6 @@ enum DateTimeMatch {
   PreciseMatch,
   Missed,
   AnswerFound(Tm),
-}
-
-fn do_try_day(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
-  let result = try_day(scheduler, time);
-
-  match result {
-    DateTimeMatch::Missed => {
-      time.tm_mday = 1; // Reset day (1-indexed)
-      time.tm_hour = 0; // Reset hour
-      time.tm_min = 0; // Reset minute
-      time.tm_sec = 0; // Reset second
-      adv_month(time);
-    },
-    _ => {},
-  }
-
-  result
-}
-
-fn do_try_hour(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
-  let result = try_hour(scheduler, time);
-
-  match result {
-    DateTimeMatch::Missed => {
-      time.tm_hour = 0; // Reset hour
-      time.tm_min = 0; // Reset minute
-      time.tm_sec = 0; // Reset second
-      adv_day(time);
-    },
-    _ => {},
-  }
-
-  result
-}
-
-fn do_try_minute(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
-  let result = try_minute(scheduler, time);
-
-  match result {
-    DateTimeMatch::Missed => {
-      time.tm_min = 0; // Reset minute
-      time.tm_sec = 0; // Reset second
-      adv_hour(time);
-    },
-    _ => {},
-  }
-
-  result
 }
 
 fn try_month(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
@@ -257,13 +200,16 @@ fn try_day(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
         DateTimeMatch::AnswerFound(use_time)
 
       } else {
-        // Skipped beyond. Pop to last unit and use next value.
+        time.tm_mday = 1; // Reset day (1-indexed)
+        time.tm_hour = 0; // Reset hour
+        time.tm_min = 0; // Reset minute
+        time.tm_sec = 0; // Reset second
+        adv_month(time);
         DateTimeMatch::Missed
       }
     }
   }
 }
-
 
 fn try_hour(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
   match scheduler.times.hours.binary_search(&(time.tm_hour as u32)) {
@@ -287,7 +233,10 @@ fn try_hour(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
         DateTimeMatch::AnswerFound(use_time)
 
       } else {
-        // Skipped beyond. Pop to last unit and use next value.
+        time.tm_hour = 0; // Reset hour
+        time.tm_min = 0; // Reset minute
+        time.tm_sec = 0; // Reset second
+        adv_day(time);
         DateTimeMatch::Missed
       }
     }
@@ -319,7 +268,9 @@ fn try_minute(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
         DateTimeMatch::AnswerFound(use_time)
 
       } else {
-        // Skipped beyond. Pop to last unit and use next value.
+        time.tm_min = 0; // Reset minute
+        time.tm_sec = 0; // Reset second
+        adv_hour(time);
         DateTimeMatch::Missed
       }
     }
