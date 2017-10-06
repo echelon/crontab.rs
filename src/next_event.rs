@@ -4,10 +4,7 @@ use times::{adv_year, adv_month, adv_day, adv_hour, adv_minute};
 
 /// Get the next time this schedule is to be executed.
 pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
-
   let mut next_time = time.clone();
-
-  println!("Schedule: {:?}", scheduler.times);
 
   // Minute-resolution. We're always going to round up to the next minute.
   next_time.tm_sec = 0;
@@ -15,36 +12,34 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
 
   loop {
     match try_month(scheduler, &mut next_time) {
-      DateTimeMatch::PreciseMatch => {}, // Continue
       DateTimeMatch::Missed => continue, // Retry
+      DateTimeMatch::ContinueMatching => {}, // Continue
       DateTimeMatch::AnswerFound(upcoming) => return Some(upcoming),
     }
 
     match try_day(scheduler, &mut next_time) {
-      DateTimeMatch::PreciseMatch => {}, // Continue
       DateTimeMatch::Missed => continue, // Retry
+      DateTimeMatch::ContinueMatching => {}, // Continue
       DateTimeMatch::AnswerFound(upcoming) => return Some(upcoming),
     }
 
     match try_hour(scheduler, &mut next_time) {
-      DateTimeMatch::PreciseMatch => {}, // Continue
       DateTimeMatch::Missed => continue, // Retry
+      DateTimeMatch::ContinueMatching => {}, // Continue
       DateTimeMatch::AnswerFound(upcoming) => return Some(upcoming),
     }
 
     match try_minute(scheduler, &mut next_time) {
-      DateTimeMatch::PreciseMatch => break, // Uhh... this is braindead
       DateTimeMatch::Missed => continue, // Retry
+      DateTimeMatch::ContinueMatching => return Some(next_time), // Uhh...
       DateTimeMatch::AnswerFound(upcoming) => return Some(upcoming),
     }
   }
-
-  Some(next_time)
 }
 
 enum DateTimeMatch {
-  PreciseMatch,
   Missed,
+  ContinueMatching,
   AnswerFound(Tm),
 }
 
@@ -56,7 +51,7 @@ fn try_month(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
   match scheduler.times.months.binary_search(&test_month) {
     Ok(_) => {
       // Precise month... must keep matching
-      DateTimeMatch::PreciseMatch
+      DateTimeMatch::ContinueMatching
     },
     Err(pos) => {
       if let Some(month) = scheduler.times.months.get(pos) {
@@ -100,7 +95,7 @@ fn try_day(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
   match scheduler.times.days.binary_search(&(time.tm_mday as u32)) {
     Ok(_) => {
       // Precise month... must keep matching
-      DateTimeMatch::PreciseMatch
+      DateTimeMatch::ContinueMatching
     },
     Err(pos) => {
       if let Some(day) = scheduler.times.days.get(pos) {
@@ -133,7 +128,7 @@ fn try_hour(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
   match scheduler.times.hours.binary_search(&(time.tm_hour as u32)) {
     Ok(_) => {
       // Precise month... must keep matching
-      DateTimeMatch::PreciseMatch
+      DateTimeMatch::ContinueMatching
     },
     Err(pos) => {
       if let Some(hour) = scheduler.times.hours.get(pos) {
