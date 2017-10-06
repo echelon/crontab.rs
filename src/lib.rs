@@ -7,6 +7,9 @@ extern crate regex;
 #[macro_use(expect)]
 extern crate expectest;
 
+#[cfg(test)]
+mod test_helpers;
+
 mod error;
 mod next_event;
 mod scheduler;

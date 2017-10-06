@@ -55,3 +55,31 @@ pub fn adv_minute(time: &mut Tm) {
     adv_hour(time);
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use expectest::prelude::*;
+  use test_helpers::get_tm;
+  use test_helpers::normal;
+
+  #[test]
+  pub fn test_adv_year() {
+    let mut tm = get_tm(2017, 10, 6, 12, 24, 0);
+    adv_year(&mut tm);
+    expect!(normal(&tm)).to(be_equal_to(get_tm(2018, 10, 6, 12, 24, 0)));
+  }
+
+  #[test]
+  pub fn test_adv_month() {
+    // January
+    let mut tm = get_tm(2017, 1, 1, 12, 0, 0);
+    adv_month(&mut tm);
+    expect!(normal(&tm)).to(be_equal_to(get_tm(2017, 2, 1, 12, 0, 0)));
+
+    // December
+    let mut tm = get_tm(2017, 12, 1, 0, 0, 0);
+    adv_month(&mut tm);
+    expect!(normal(&tm)).to(be_equal_to(get_tm(2018, 1, 1, 0, 0, 0)));
+  }
+}
