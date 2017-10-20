@@ -184,8 +184,9 @@ fn try_minute(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
 mod tests {
   use super::*;
   use expectest::prelude::*;
-  use test_helpers::normal;
   use test_helpers::get_tm;
+  use test_helpers::normal;
+  use time::{Timespec, at_utc};
 
   #[test]
   fn every_minute() {
@@ -397,5 +398,47 @@ mod tests {
     let tm = get_tm(2007, 7, 1, 0, 0, 0);
     let next = calculate_next_event(&schedule, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2008, 1, 1, 0, 0, 0)));
+  }
+
+  #[test]
+  fn every_day_spot_check_fields() {
+    // Every single day at midnight.
+    let schedule = Scheduler::new("0 0 * * *").ok().unwrap();
+
+    // 2017-01-01 00:00 UTC, a non-leap year starting on a Sunday (tm_wday=0).
+    let timespec = Timespec::new(1483228800, 0);
+    let mut tm = at_utc(timespec);
+    let mut expected = tm.clone();
+    let mut next = tm.clone();
+
+    // First day of 2017. (tm_year=117)
+    expect!(tm.tm_yday).to(be_equal_to(0));
+    expect!(tm.tm_year).to(be_equal_to(117));
+    expect!(tm.tm_wday).to(be_equal_to(0)); // 2017 starts on a Sunday
+
+    for _ in 0 .. 366 {
+      // We expect the next event to be the next day.
+      adv_day(&mut expected);
+      next = calculate_next_event(&schedule, &tm).unwrap();
+
+      // Check expectations.
+      expect!(next.tm_year).to(be_equal_to(expected.tm_year));
+      expect!(next.tm_mon).to(be_equal_to(expected.tm_mon));
+      expect!(next.tm_mday).to(be_equal_to(expected.tm_mday));
+      expect!(next.tm_yday).to(be_equal_to(expected.tm_yday));
+      expect!(next.tm_wday).to(be_equal_to(expected.tm_wday));
+
+      // Midnight
+      expect!(next.tm_hour).to(be_equal_to(0));
+      expect!(next.tm_min).to(be_equal_to(0));
+      expect!(next.tm_sec).to(be_equal_to(0));
+
+      adv_day(&mut tm);
+    }
+
+    // First day of 2018. (tm_year=118)
+    expect!(next.tm_yday).to(be_equal_to(0));
+    expect!(next.tm_year).to(be_equal_to(118));
+    expect!(next.tm_wday).to(be_equal_to(1)); // 2018 starts on a Monday
   }
 }

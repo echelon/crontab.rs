@@ -20,8 +20,6 @@ pub (crate) fn adv_month(time: &mut Tm) {
 /// Advance the day, but leave the hour, minute, and second untouched.
 pub (crate) fn adv_day(time: &mut Tm) {
   time.tm_wday = (time.tm_wday + 1) % 7; // day of week
-  time.tm_yday = (time.tm_yday + 1) % 366; // day of year
-
   time.tm_mday += 1; // day of month
 
   let is_leap_year = {
@@ -33,6 +31,12 @@ pub (crate) fn adv_day(time: &mut Tm) {
       false
     }
   };
+
+  let days_in_year = if is_leap_year { 366 } else { 365 };
+
+  println!("Is leap year: {} | before: {}, {}", is_leap_year, time.tm_yday, time.tm_mday);
+
+  time.tm_yday = (time.tm_yday + 1) % days_in_year; // day of year
 
   match time.tm_mon {
     0 | 2 | 4 | 6 | 7 | 9 | 11 => {
@@ -80,10 +84,10 @@ pub (crate) fn adv_minute(time: &mut Tm) {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use time::{Timespec, at_utc};
   use expectest::prelude::*;
   use test_helpers::get_tm;
   use test_helpers::normal;
+  use time::{Timespec, at_utc};
 
   #[test]
   pub fn test_adv_year() {
@@ -173,6 +177,21 @@ mod tests {
       adv_day(&mut tm);
       expect!(tm.tm_wday).to(be_equal_to(expected));
     }
+
+    // Reset.
+    let mut tm = at_utc(timespec);
+
+    expect!(tm.tm_year).to(be_equal_to(117)); // 2017
+    expect!(tm.tm_wday).to(be_equal_to(0)); // Starts on a Sunday
+
+    // Entire year.
+    for _ in 0 .. 365 {
+      adv_day(&mut tm);
+    }
+
+    // Now it's 2018-01-01
+    expect!(tm.tm_year).to(be_equal_to(118)); // 2018
+    expect!(tm.tm_wday).to(be_equal_to(1)); // Starts on a Monday
   }
 
   #[test]
@@ -182,16 +201,42 @@ mod tests {
     let mut tm = at_utc(timespec);
 
     // First day of 2017. (tm_year=117)
-    expect!(tm.tm_yday).to(be_equal_to(0));
     expect!(tm.tm_year).to(be_equal_to(117));
+    expect!(tm.tm_yday).to(be_equal_to(0));
 
-    for expected in 0 .. 366 {
-      expect!(tm.tm_yday).to(be_equal_to(expected));
+    // 2017 passes...
+    for expected_day in 0 .. 365 {
+      expect!(tm.tm_year).to(be_equal_to(117)); // 2017
+      expect!(tm.tm_yday).to(be_equal_to(expected_day));
       adv_day(&mut tm);
     }
 
     // First day of 2018.
-    expect!(tm.tm_yday).to(be_equal_to(0));
     expect!(tm.tm_year).to(be_equal_to(118));
+    expect!(tm.tm_yday).to(be_equal_to(0));
+
+    // 2018 and 2019 pass... (Also not leap years.)
+    for year in 118 .. 120 {
+      for expected_day in 0..365 {
+        expect!(tm.tm_year).to(be_equal_to(year));
+        expect!(tm.tm_yday).to(be_equal_to(expected_day));
+        adv_day(&mut tm);
+      }
+    }
+
+    // First day of 2020.
+    expect!(tm.tm_year).to(be_equal_to(120));
+    expect!(tm.tm_yday).to(be_equal_to(0));
+
+    // This is a leap year!
+    for expected_day in 0..366 {
+      expect!(tm.tm_year).to(be_equal_to(120));
+      expect!(tm.tm_yday).to(be_equal_to(expected_day));
+      adv_day(&mut tm);
+    }
+
+    // First day of 2021.
+    expect!(tm.tm_year).to(be_equal_to(121));
+    expect!(tm.tm_yday).to(be_equal_to(0));
   }
 }
