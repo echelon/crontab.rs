@@ -401,25 +401,27 @@ mod tests {
   }
 
   #[test]
-  fn every_day_spot_check_fields() {
+  fn spot_check_fields_every_day() {
     // Every single day at midnight.
     let schedule = Scheduler::new("0 0 * * *").ok().unwrap();
 
     // 2017-01-01 00:00 UTC, a non-leap year starting on a Sunday (tm_wday=0).
     let timespec = Timespec::new(1483228800, 0);
-    let mut tm = at_utc(timespec);
-    let mut expected = tm.clone();
-    let mut next = tm.clone();
+    let mut last = at_utc(timespec);
+    let mut next = last.clone();
+    let mut expected = last.clone();
 
     // First day of 2017. (tm_year=117)
-    expect!(tm.tm_yday).to(be_equal_to(0));
-    expect!(tm.tm_year).to(be_equal_to(117));
-    expect!(tm.tm_wday).to(be_equal_to(0)); // 2017 starts on a Sunday
+    expect!(last.tm_year).to(be_equal_to(117));
+    expect!(next.tm_mon).to(be_equal_to(0));
+    expect!(last.tm_yday).to(be_equal_to(0));
+    expect!(next.tm_mday).to(be_equal_to(1)); // 1-indexed
+    expect!(last.tm_wday).to(be_equal_to(0)); // 2017 starts on a Sunday
 
-    for _ in 0 .. 366 {
+    for _ in 0 .. 365 {
       // We expect the next event to be the next day.
       adv_day(&mut expected);
-      next = calculate_next_event(&schedule, &tm).unwrap();
+      next = calculate_next_event(&schedule, &last).unwrap();
 
       // Check expectations.
       expect!(next.tm_year).to(be_equal_to(expected.tm_year));
@@ -433,12 +435,70 @@ mod tests {
       expect!(next.tm_min).to(be_equal_to(0));
       expect!(next.tm_sec).to(be_equal_to(0));
 
-      adv_day(&mut tm);
+      adv_day(&mut last);
     }
 
     // First day of 2018. (tm_year=118)
-    expect!(next.tm_yday).to(be_equal_to(0));
     expect!(next.tm_year).to(be_equal_to(118));
+    expect!(next.tm_mon).to(be_equal_to(0));
+    expect!(next.tm_yday).to(be_equal_to(0));
+    expect!(next.tm_mday).to(be_equal_to(1)); // 1-indexed
     expect!(next.tm_wday).to(be_equal_to(1)); // 2018 starts on a Monday
+
+    // The next two years aren't leap years.
+    for _ in 0 .. (365 * 2) {
+      // We expect the next event to be the next day.
+      adv_day(&mut expected);
+      next = calculate_next_event(&schedule, &last).unwrap();
+
+      // Check expectations.
+      expect!(next.tm_year).to(be_equal_to(expected.tm_year));
+      expect!(next.tm_mon).to(be_equal_to(expected.tm_mon));
+      expect!(next.tm_mday).to(be_equal_to(expected.tm_mday));
+      expect!(next.tm_yday).to(be_equal_to(expected.tm_yday));
+      expect!(next.tm_wday).to(be_equal_to(expected.tm_wday));
+
+      // Midnight
+      expect!(next.tm_hour).to(be_equal_to(0));
+      expect!(next.tm_min).to(be_equal_to(0));
+      expect!(next.tm_sec).to(be_equal_to(0));
+
+      adv_day(&mut last);
+    }
+
+    // First day of 2020.
+    expect!(next.tm_year).to(be_equal_to(120));
+    expect!(next.tm_mon).to(be_equal_to(0));
+    expect!(next.tm_yday).to(be_equal_to(0));
+    expect!(next.tm_mday).to(be_equal_to(1)); // 1-indexed
+    expect!(next.tm_wday).to(be_equal_to(3)); // 2018 starts on a Wednesday
+
+    // 2020 is a leap year
+    for _ in 0 .. 366 {
+      // We expect the next event to be the next day.
+      adv_day(&mut expected);
+      next = calculate_next_event(&schedule, &last).unwrap();
+
+      // Check expectations.
+      expect!(next.tm_year).to(be_equal_to(expected.tm_year));
+      expect!(next.tm_mon).to(be_equal_to(expected.tm_mon));
+      expect!(next.tm_mday).to(be_equal_to(expected.tm_mday));
+      expect!(next.tm_yday).to(be_equal_to(expected.tm_yday));
+      expect!(next.tm_wday).to(be_equal_to(expected.tm_wday));
+
+      // Midnight
+      expect!(next.tm_hour).to(be_equal_to(0));
+      expect!(next.tm_min).to(be_equal_to(0));
+      expect!(next.tm_sec).to(be_equal_to(0));
+
+      adv_day(&mut last);
+    }
+
+    // First day of 2021.
+    expect!(next.tm_year).to(be_equal_to(121));
+    expect!(next.tm_mon).to(be_equal_to(0));
+    expect!(next.tm_yday).to(be_equal_to(0));
+    expect!(next.tm_mday).to(be_equal_to(1)); // 1-indexed
+    expect!(next.tm_wday).to(be_equal_to(5)); // 2018 starts on a Friday
   }
 }
