@@ -73,6 +73,7 @@ pub (crate) fn adv_minute(time: &mut Tm) {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use time::{Timespec, at_utc};
   use expectest::prelude::*;
   use test_helpers::get_tm;
   use test_helpers::normal;
@@ -97,10 +98,8 @@ mod tests {
     expect!(normal(&tm)).to(be_equal_to(get_tm(2018, 1, 1, 0, 0, 0)));
   }
 
-  use time::at_utc;
-  use time::Timespec;
   #[test]
-  pub fn test_mday() {
+  pub fn test_adv_day_on_mday() {
     // 2017-01-01 00:00 UTC, a non-leap year starting on a Sunday (tm_wday=0).
     let timespec = Timespec::new(1483228800, 0);
     let mut tm = at_utc(timespec);
@@ -135,5 +134,37 @@ mod tests {
     }
 
     expect!(tm.tm_year).to(be_equal_to(121));
+  }
+
+  #[test]
+  pub fn test_adv_day_on_wday() {
+    // 2017-01-01 00:00 UTC, a non-leap year starting on a Sunday (tm_wday=0).
+    let timespec = Timespec::new(1483228800, 0);
+    let mut tm = at_utc(timespec);
+
+    // First week.
+    expect!(tm.tm_wday).to(be_equal_to(0));
+    adv_day(&mut tm);
+    expect!(tm.tm_wday).to(be_equal_to(1));
+    adv_day(&mut tm);
+    expect!(tm.tm_wday).to(be_equal_to(2));
+    adv_day(&mut tm);
+    expect!(tm.tm_wday).to(be_equal_to(3));
+    adv_day(&mut tm);
+    expect!(tm.tm_wday).to(be_equal_to(4));
+    adv_day(&mut tm);
+    expect!(tm.tm_wday).to(be_equal_to(5));
+    adv_day(&mut tm);
+    expect!(tm.tm_wday).to(be_equal_to(6));
+    adv_day(&mut tm);
+    expect!(tm.tm_wday).to(be_equal_to(0)); // Back to sunday!
+
+    // Four more years...
+    let mut expected = 0;
+    for i in 0 .. 1460 {
+      expected = (expected + 1) % 7;
+      adv_day(&mut tm);
+      expect!(tm.tm_wday).to(be_equal_to(expected));
+    }
   }
 }
