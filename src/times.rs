@@ -19,6 +19,16 @@ pub (crate) fn adv_day(time: &mut Tm) {
 
   time.tm_mday += 1; // day of month
 
+  let is_leap_year = {
+    let year = time.tm_year + 1900;
+    if year % 400 == 0
+        || (year % 4 == 0 && year % 100 != 0) {
+      true
+    } else {
+      false
+    }
+  };
+
   match time.tm_mon {
     0 | 2 | 4 | 6 | 7 | 9 | 11 => {
       if time.tm_mday > 31 {
@@ -33,8 +43,9 @@ pub (crate) fn adv_day(time: &mut Tm) {
       }
     },
     1 => {
-      // TODO: Leap years. 28 vs 29. (Also with tm_yday.)
-      if time.tm_mday > 28 {
+      let mdays = if is_leap_year { 29 } else { 28 };
+
+      if time.tm_mday > mdays {
         time.tm_mday = 1;
         adv_month(time);
       }
@@ -97,15 +108,20 @@ mod tests {
     // 2017 to 2019 are not leap years
     let days_in_months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-    for _ in 0..3 {
+    // 2017 is (tm_year=117)
+    for tm_year in 117 .. 120 {
+      expect!(tm.tm_year).to(be_equal_to(tm_year));
+
       for days_in_month in days_in_months.iter() {
         let bound = days_in_month + 1; // 1-indexed
         for expected_day in 1..bound {
-          expect(tm.tm_mday).to(be_equal_to(expected_day));
+          expect!(tm.tm_mday).to(be_equal_to(expected_day));
           adv_day(&mut tm);
         }
       }
     }
+
+    expect!(tm.tm_year).to(be_equal_to(120));
 
     // 2020 is a leap-year
     let days_in_months = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -113,9 +129,11 @@ mod tests {
     for days_in_month in days_in_months.iter() {
       let bound = days_in_month + 1; // 1-indexed
       for expected_day in 1..bound {
-        expect(tm.tm_mday).to(be_equal_to(expected_day));
+        expect!(tm.tm_mday).to(be_equal_to(expected_day));
         adv_day(&mut tm);
       }
     }
+
+    expect!(tm.tm_year).to(be_equal_to(121));
   }
 }
