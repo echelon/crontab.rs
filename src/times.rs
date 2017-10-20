@@ -85,4 +85,37 @@ mod tests {
     adv_month(&mut tm);
     expect!(normal(&tm)).to(be_equal_to(get_tm(2018, 1, 1, 0, 0, 0)));
   }
+
+  use time::at_utc;
+  use time::Timespec;
+  #[test]
+  pub fn test_mday() {
+    // 2017-01-01 00:00 UTC, a non-leap year starting on a Sunday (tm_wday=0).
+    let timespec = Timespec::new(1483228800, 0);
+    let mut tm = at_utc(timespec);
+
+    // 2017 to 2019 are not leap years
+    let days_in_months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+    for _ in 0..3 {
+      for days_in_month in days_in_months.iter() {
+        let bound = days_in_month + 1; // 1-indexed
+        for expected_day in 1..bound {
+          expect(tm.tm_mday).to(be_equal_to(expected_day));
+          adv_day(&mut tm);
+        }
+      }
+    }
+
+    // 2020 is a leap-year
+    let days_in_months = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+    for days_in_month in days_in_months.iter() {
+      let bound = days_in_month + 1; // 1-indexed
+      for expected_day in 1..bound {
+        expect(tm.tm_mday).to(be_equal_to(expected_day));
+        adv_day(&mut tm);
+      }
+    }
+  }
 }
