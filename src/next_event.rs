@@ -56,8 +56,6 @@ fn try_month(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
     Err(pos) => {
       if let Some(month) = scheduler.times.months.get(pos) {
         // Next month. We're done.
-        println!("Next month, pos: {}, month: {}", pos, month);
-
         let mut use_time = time.clone();
         use_time.tm_mon = (month - 1) as i32;
         // Tm day range is [1, 31]
@@ -72,8 +70,6 @@ fn try_month(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
 
       } else {
         // Skipped beyond. Pop to last unit and use next value.
-        println!("Not found, pos: {}", pos);
-
         time.tm_year = time.tm_year + 1;
         // Tm month range is [0, 11], Cron months are [1, 12]
         time.tm_mon = (scheduler.times.months.get(0).unwrap().clone() - 1) as i32;
@@ -99,9 +95,9 @@ fn try_day(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
     },
     Err(pos) => {
       if let Some(day) = scheduler.times.days.get(pos) {
-        // Next day. We're done. TODO: Days in months varies.
+        // Next day. We're done.
+        // TODO: Some of the fields won't be correct.
         let mut use_time = time.clone();
-        //use_time.tm_mon = (month - 1) as i32;
         // Tm day range is [1, 31]
         use_time.tm_mday = day.clone() as i32;
         // Tm hour range is [0, 23]
@@ -132,11 +128,9 @@ fn try_hour(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
     },
     Err(pos) => {
       if let Some(hour) = scheduler.times.hours.get(pos) {
-        // Next day. We're done. TODO: Days in months varies.
+        // Next hour. We're done.
+        // TODO: Some of the fields won't be correct.
         let mut use_time = time.clone();
-        //use_time.tm_mon = (month - 1) as i32;
-        // Tm day range is [1, 31]
-        //use_time.tm_mday = day as i32;
         // Tm hour range is [0, 23]
         use_time.tm_hour = hour.clone() as i32;
         // Tm minute range is [0, 59]
@@ -167,13 +161,9 @@ fn try_minute(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
     },
     Err(pos) => {
       if let Some(minute) = scheduler.times.minutes.get(pos) {
-        // Next day. We're done. TODO: Days in months varies.
+        // Next minute. We're done.
+        // TODO: Some of the fields won't be correct.
         let mut use_time = time.clone();
-        //use_time.tm_mon = (month - 1) as i32;
-        // Tm day range is [1, 31]
-        //use_time.tm_mday = day as i32;
-        // Tm hour range is [0, 23]
-        //use_time.tm_hour = hour as i32;
         // Tm minute range is [0, 59]
         use_time.tm_min = minute.clone() as i32;
         use_time.tm_sec = 0; // Second resolution
