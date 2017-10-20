@@ -1,10 +1,14 @@
 use time::Tm;
 
+/// Advance the year, but leave all other fields untouched.
+/// This can result in an invalid day-of-month, day-of-year, or day-of-week!
 pub (crate) fn adv_year(time: &mut Tm) {
   // TODO: Handle leap years effectively, as they'll effect tm_yday and tm_mday.
   time.tm_year += 1;
 }
 
+/// Advance the day, but leave the day (and hour, minute, second) untouched.
+/// This can result in an invalid day-of-month!
 pub (crate) fn adv_month(time: &mut Tm) {
   time.tm_mon += 1;
   if time.tm_mon > 11 {
@@ -13,6 +17,7 @@ pub (crate) fn adv_month(time: &mut Tm) {
   }
 }
 
+/// Advance the day, but leave the hour, minute, and second untouched.
 pub (crate) fn adv_day(time: &mut Tm) {
   time.tm_wday = (time.tm_wday + 1) % 7; // day of week
   time.tm_yday = (time.tm_yday + 1) % 366; // day of year
@@ -54,6 +59,7 @@ pub (crate) fn adv_day(time: &mut Tm) {
   }
 }
 
+/// Advance the hour, but leave the minute and second untouched.
 pub (crate) fn adv_hour(time: &mut Tm) {
   time.tm_hour += 1;
   if time.tm_hour > 23 {
@@ -62,6 +68,7 @@ pub (crate) fn adv_hour(time: &mut Tm) {
   }
 }
 
+/// Advance the minute, but leave the second untouched.
 pub (crate) fn adv_minute(time: &mut Tm) {
   time.tm_min += 1;
   if time.tm_min > 59 {
