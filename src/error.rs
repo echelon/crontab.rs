@@ -1,23 +1,22 @@
 use std::num::ParseIntError;
 use std::fmt;
 
-// TODO: Rename TaskError
-pub enum Error {
+pub enum CrontabError {
   ErrCronFormat(String),
   ErrParseInt(ParseIntError),
 }
 
-impl From<ParseIntError> for Error {
-  fn from(err: ParseIntError) -> Error {
-    Error::ErrParseInt(err)
+impl From<ParseIntError> for CrontabError {
+  fn from(err: ParseIntError) -> CrontabError {
+    CrontabError::ErrParseInt(err)
   }
 }
 
-impl fmt::Display for Error {
+impl fmt::Display for CrontabError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match self {
-      &Error::ErrCronFormat(ref x) => write!(f, "<ErrCronFormat> {:?}", x),
-      &Error::ErrParseInt(ref e) => write!(f, "<ErrParseInt> {:?}", e),
+      &CrontabError::ErrCronFormat(ref x) => write!(f, "<ErrCronFormat> {:?}", x),
+      &CrontabError::ErrParseInt(ref e) => write!(f, "<ErrParseInt> {:?}", e),
     }
   }
 }

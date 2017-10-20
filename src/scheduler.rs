@@ -35,13 +35,13 @@ use std::str::FromStr;
 use time;
 use regex::Regex;
 
-use error::Error;
-use error::Error::ErrCronFormat;
+use error::CrontabError;
+use error::CrontabError::ErrCronFormat;
 
-pub type SchedulerResult<'a> = Result<Scheduler<'a>, Error>;
+pub (crate) type SchedulerResult<'a> = Result<Scheduler<'a>, CrontabError>;
 
-#[derive(Debug, Default)]
-pub struct TimeSpec {
+#[derive(Clone, Debug, Default)]
+pub (crate) struct TimeSpec {
   pub months: Vec<u32>,
   pub days: Vec<u32>,
   pub weekdays: Vec<u32>,
@@ -51,7 +51,7 @@ pub struct TimeSpec {
 }
 
 #[derive(Debug)]
-pub struct Scheduler<'a> {
+pub (crate) struct Scheduler<'a> {
   seconds: &'a str,
   minutes: &'a str,
   hours: &'a str,
@@ -115,7 +115,7 @@ impl<'a> Scheduler<'a> {
     }
   }
 
-  pub fn parse_time_fields(&mut self) -> Result<(), Error> {
+  pub fn parse_time_fields(&mut self) -> Result<(), CrontabError> {
     if self.seconds != "" {
       self.timePoints.insert("seconds", try!(parse_intervals_field(self.seconds, 0, 59)));
     } else {
@@ -171,7 +171,7 @@ impl<'a> Scheduler<'a> {
   }
 }
 
-fn parse_intervals_field(inter: &str, min: u32, max: u32) -> Result<HashSet<u32>, Error> {
+fn parse_intervals_field(inter: &str, min: u32, max: u32) -> Result<HashSet<u32>, CrontabError> {
   let mut points = HashSet::new();
   let parts: Vec<&str> = inter.split(",").collect();
 

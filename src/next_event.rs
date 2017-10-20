@@ -1,9 +1,10 @@
-use scheduler::Scheduler;
+use scheduler::TimeSpec;
 use time::Tm;
 use times::{adv_year, adv_month, adv_day, adv_hour, adv_minute};
 
+// TODO/FIXME: API is a bit strange.
 /// Get the next time this schedule is to be executed.
-pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
+pub (crate) fn calculate_next_event(times: &TimeSpec, time: &Tm) -> Option<Tm> {
   let mut next_time = time.clone();
 
   // Minute-resolution. We're always going to round up to the next minute.
@@ -11,25 +12,25 @@ pub fn calculate_next_event(scheduler: &Scheduler, time: &Tm) -> Option<Tm> {
   adv_minute(&mut next_time);
 
   loop {
-    match try_month(scheduler, &mut next_time) {
+    match try_month(times, &mut next_time) {
       DateTimeMatch::Missed => continue, // Retry
       DateTimeMatch::ContinueMatching => {}, // Continue
       DateTimeMatch::AnswerFound(upcoming) => return Some(upcoming),
     }
 
-    match try_day(scheduler, &mut next_time) {
+    match try_day(times, &mut next_time) {
       DateTimeMatch::Missed => continue, // Retry
       DateTimeMatch::ContinueMatching => {}, // Continue
       DateTimeMatch::AnswerFound(upcoming) => return Some(upcoming),
     }
 
-    match try_hour(scheduler, &mut next_time) {
+    match try_hour(times, &mut next_time) {
       DateTimeMatch::Missed => continue, // Retry
       DateTimeMatch::ContinueMatching => {}, // Continue
       DateTimeMatch::AnswerFound(upcoming) => return Some(upcoming),
     }
 
-    match try_minute(scheduler, &mut next_time) {
+    match try_minute(times, &mut next_time) {
       DateTimeMatch::Missed => continue, // Retry
       DateTimeMatch::ContinueMatching => return Some(next_time), // Uhh...
       DateTimeMatch::AnswerFound(upcoming) => return Some(upcoming),
@@ -43,12 +44,12 @@ enum DateTimeMatch {
   AnswerFound(Tm),
 }
 
-fn try_month(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
+fn try_month(times: &TimeSpec, time: &mut Tm) -> DateTimeMatch {
   // Tm month range is [0, 11]
   // Cron months are [1, 12]
   let test_month = (time.tm_mon + 1) as u32;
 
-  match scheduler.times.months.binary_search(&test_month) {
+  match times.months.binary_search(&test_month) {
     Ok(_) => {
       // Precise month... must keep matching
       DateTimeMatch::ContinueMatching
@@ -87,8 +88,8 @@ fn try_month(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
   }
 }
 
-fn try_day(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
-  match scheduler.times.days.binary_search(&(time.tm_mday as u32)) {
+fn try_day(times: &TimeSpec, time: &mut Tm) -> DateTimeMatch {
+  match times.days.binary_search(&(time.tm_mday as u32)) {
     Ok(_) => {
       // Precise month... must keep matching
       DateTimeMatch::ContinueMatching
@@ -96,7 +97,6 @@ fn try_day(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
     Err(pos) => {
       if let Some(day) = scheduler.times.days.get(pos) {
         // Next day. We're done.
-        // TODO: Some of the fields won't be correct.
         let mut use_time = time.clone();
         // Tm day range is [1, 31]
         use_time.tm_mday = day.clone() as i32;
@@ -120,8 +120,8 @@ fn try_day(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
   }
 }
 
-fn try_hour(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
-  match scheduler.times.hours.binary_search(&(time.tm_hour as u32)) {
+fn try_hour(times: &TimeSpec, time: &mut Tm) -> DateTimeMatch {
+  match times.times.hours.binary_search(&(time.tm_hour as u32)) {
     Ok(_) => {
       // Precise month... must keep matching
       DateTimeMatch::ContinueMatching
@@ -129,7 +129,6 @@ fn try_hour(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
     Err(pos) => {
       if let Some(hour) = scheduler.times.hours.get(pos) {
         // Next hour. We're done.
-        // TODO: Some of the fields won't be correct.
         let mut use_time = time.clone();
         // Tm hour range is [0, 23]
         use_time.tm_hour = hour.clone() as i32;
@@ -150,8 +149,8 @@ fn try_hour(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
   }
 }
 
-fn try_minute(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
-  match scheduler.times.minutes.binary_search(&(time.tm_min as u32)) {
+fn try_minute(times: &TimeSpec, time: &mut Tm) -> DateTimeMatch {
+  match times.times.minutes.binary_search(&(time.tm_min as u32)) {
     Ok(_) => {
       // DONE
       let mut use_time = time.clone();
@@ -162,7 +161,6 @@ fn try_minute(scheduler: &Scheduler, time: &mut Tm) -> DateTimeMatch {
     Err(pos) => {
       if let Some(minute) = scheduler.times.minutes.get(pos) {
         // Next minute. We're done.
-        // TODO: Some of the fields won't be correct.
         let mut use_time = time.clone();
         // Tm minute range is [0, 59]
         use_time.tm_min = minute.clone() as i32;
@@ -194,32 +192,32 @@ mod tests {
 
     // Advances the minute
     let tm = get_tm(2001, 1, 1, 12, 0, 0);
-    let next = calculate_next_event(&schedule, &tm).unwrap();
+    let next = calculate_next_event(&schedule.times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2001, 1, 1, 12, 1, 0)));
 
     // Again
     let tm = get_tm(2001, 1, 1, 12, 30, 0);
-    let next = calculate_next_event(&schedule, &tm).unwrap();
+    let next = calculate_next_event(&schedule.times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2001, 1, 1, 12, 31, 0)));
 
     // Advances the hour
     let tm = get_tm(2001, 1, 1, 12, 59, 0);
-    let next = calculate_next_event(&schedule, &tm).unwrap();
+    let next = calculate_next_event(&schedule.times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2001, 1, 1, 13, 0, 0)));
 
     // Advances the day
     let tm = get_tm(2001, 1, 1, 23, 59, 0);
-    let next = calculate_next_event(&schedule, &tm).unwrap();
+    let next = calculate_next_event(&schedule.times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2001, 1, 2, 0, 0, 0)));
 
     // Advances the month
     let tm = get_tm(2001, 1, 31, 23, 59, 0);
-    let next = calculate_next_event(&schedule, &tm).unwrap();
+    let next = calculate_next_event(&schedule.times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2001, 2, 1, 0, 0, 0)));
 
     // Seconds get rounded up to the next minute
     let tm = get_tm(2001, 1, 1, 12, 0, 1);
-    let next = calculate_next_event(&schedule, &tm).unwrap();
+    let next = calculate_next_event(&schedule.times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2001, 1, 1, 12, 1, 0)));
   }
 

@@ -3,7 +3,6 @@ use time::Tm;
 /// Advance the year, but leave all other fields untouched.
 /// This can result in an invalid day-of-month, day-of-year, or day-of-week!
 pub (crate) fn adv_year(time: &mut Tm) {
-  // TODO: Handle leap years effectively, as they'll effect tm_yday and tm_mday.
   time.tm_year += 1;
 }
 
@@ -34,8 +33,6 @@ pub (crate) fn adv_day(time: &mut Tm) {
 
   let days_in_year = if is_leap_year { 366 } else { 365 };
 
-  println!("Is leap year: {} | before: {}, {}", is_leap_year, time.tm_yday, time.tm_mday);
-
   time.tm_yday = (time.tm_yday + 1) % days_in_year; // day of year
 
   match time.tm_mon {
@@ -59,7 +56,7 @@ pub (crate) fn adv_day(time: &mut Tm) {
         adv_month(time);
       }
     },
-    _ => unreachable!(),
+    _ => {}, // bad user input
   }
 }
 
