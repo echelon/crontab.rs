@@ -167,4 +167,24 @@ mod tests {
       expect!(tm.tm_wday).to(be_equal_to(expected));
     }
   }
+
+  #[test]
+  pub fn test_adv_day_on_yday() {
+    // 2017-01-01 00:00 UTC, a non-leap year starting on a Sunday (tm_wday=0).
+    let timespec = Timespec::new(1483228800, 0);
+    let mut tm = at_utc(timespec);
+
+    // First day of 2017. (tm_year=117)
+    expect!(tm.tm_yday).to(be_equal_to(0));
+    expect!(tm.tm_year).to(be_equal_to(117));
+
+    for expected in 0 .. 366 {
+      expect!(tm.tm_yday).to(be_equal_to(expected));
+      adv_day(&mut tm);
+    }
+
+    // First day of 2018.
+    expect!(tm.tm_yday).to(be_equal_to(0));
+    expect!(tm.tm_year).to(be_equal_to(118));
+  }
 }
