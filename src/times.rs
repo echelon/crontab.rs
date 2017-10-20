@@ -217,7 +217,7 @@ mod tests {
 
     // 2018 and 2019 pass... (Also not leap years.)
     for year in 118 .. 120 {
-      for expected_day in 0..365 {
+      for expected_day in 0 .. 365 {
         expect!(tm.tm_year).to(be_equal_to(year));
         expect!(tm.tm_yday).to(be_equal_to(expected_day));
         adv_day(&mut tm);
@@ -229,7 +229,7 @@ mod tests {
     expect!(tm.tm_yday).to(be_equal_to(0));
 
     // This is a leap year!
-    for expected_day in 0..366 {
+    for expected_day in 0 .. 366 {
       expect!(tm.tm_year).to(be_equal_to(120));
       expect!(tm.tm_yday).to(be_equal_to(expected_day));
       adv_day(&mut tm);
