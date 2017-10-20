@@ -1,10 +1,11 @@
 use time::Tm;
 
-pub fn adv_year(time: &mut Tm) {
+pub (crate) fn adv_year(time: &mut Tm) {
+  // TODO: Handle leap years effectively, as they'll effect tm_yday and tm_mday.
   time.tm_year += 1;
 }
 
-pub fn adv_month(time: &mut Tm) {
+pub (crate) fn adv_month(time: &mut Tm) {
   time.tm_mon += 1;
   if time.tm_mon > 11 {
     time.tm_mon = 0;
@@ -12,9 +13,11 @@ pub fn adv_month(time: &mut Tm) {
   }
 }
 
-pub fn adv_day(time: &mut Tm) {
+pub (crate) fn adv_day(time: &mut Tm) {
   time.tm_wday = (time.tm_wday + 1) % 7; // day of week
-  time.tm_mday += 1;
+  time.tm_yday = (time.tm_yday + 1) % 366; // day of year
+
+  time.tm_mday += 1; // day of month
 
   match time.tm_mon {
     0 | 2 | 4 | 6 | 7 | 9 | 11 => {
@@ -30,7 +33,7 @@ pub fn adv_day(time: &mut Tm) {
       }
     },
     1 => {
-      // TODO: Leap years. 28 vs 29.
+      // TODO: Leap years. 28 vs 29. (Also with tm_yday.)
       if time.tm_mday > 28 {
         time.tm_mday = 1;
         adv_month(time);
@@ -40,7 +43,7 @@ pub fn adv_day(time: &mut Tm) {
   }
 }
 
-pub fn adv_hour(time: &mut Tm) {
+pub (crate) fn adv_hour(time: &mut Tm) {
   time.tm_hour += 1;
   if time.tm_hour > 23 {
     time.tm_hour = 0;
@@ -48,7 +51,7 @@ pub fn adv_hour(time: &mut Tm) {
   }
 }
 
-pub fn adv_minute(time: &mut Tm) {
+pub (crate) fn adv_minute(time: &mut Tm) {
   time.tm_min += 1;
   if time.tm_min > 59 {
     time.tm_min = 0;
