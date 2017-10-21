@@ -1,6 +1,7 @@
 use error::CrontabError;
 use next_event::calculate_next_event;
 use scheduler::{TimeSpec, Scheduler};
+use time::Tm;
 
 /// Represents a Crontab schedule.
 /// (Currently this is just an opaque type over 'cron_rs'. In the future, this
@@ -23,6 +24,6 @@ impl Crontab {
   // TODO/FIXME: API is a bit strange.
   /// Find when the next event will take place.
   pub fn find_next_event(&self, time: &Tm) -> Option<Tm> {
-    calculate_next_event(self.times, time)
+    calculate_next_event(&self.times, time)
   }
 }
