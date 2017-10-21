@@ -1,10 +1,10 @@
-use scheduler::TimeSpec;
+use scheduler::ScheduleSpec;
 use time::Tm;
 use times::{adv_year, adv_month, adv_day, adv_hour, adv_minute};
 
 // TODO/FIXME: API is a bit strange.
 /// Get the next time this schedule is to be executed.
-pub (crate) fn calculate_next_event(times: &TimeSpec, time: &Tm) -> Option<Tm> {
+pub (crate) fn calculate_next_event(times: &ScheduleSpec, time: &Tm) -> Option<Tm> {
   let mut next_time = time.clone();
 
   // Minute-resolution. We're always going to round up to the next minute.
@@ -44,7 +44,7 @@ enum DateTimeMatch {
   AnswerFound(Tm),
 }
 
-fn try_month(times: &TimeSpec, time: &mut Tm) -> DateTimeMatch {
+fn try_month(times: &ScheduleSpec, time: &mut Tm) -> DateTimeMatch {
   // Tm month range is [0, 11]
   // Cron months are [1, 12]
   let test_month = (time.tm_mon + 1) as u32;
@@ -88,7 +88,7 @@ fn try_month(times: &TimeSpec, time: &mut Tm) -> DateTimeMatch {
   }
 }
 
-fn try_day(times: &TimeSpec, time: &mut Tm) -> DateTimeMatch {
+fn try_day(times: &ScheduleSpec, time: &mut Tm) -> DateTimeMatch {
   match times.days.binary_search(&(time.tm_mday as u32)) {
     Ok(_) => {
       // Precise month... must keep matching
@@ -120,7 +120,7 @@ fn try_day(times: &TimeSpec, time: &mut Tm) -> DateTimeMatch {
   }
 }
 
-fn try_hour(times: &TimeSpec, time: &mut Tm) -> DateTimeMatch {
+fn try_hour(times: &ScheduleSpec, time: &mut Tm) -> DateTimeMatch {
   match times.hours.binary_search(&(time.tm_hour as u32)) {
     Ok(_) => {
       // Precise month... must keep matching
@@ -149,7 +149,7 @@ fn try_hour(times: &TimeSpec, time: &mut Tm) -> DateTimeMatch {
   }
 }
 
-fn try_minute(times: &TimeSpec, time: &mut Tm) -> DateTimeMatch {
+fn try_minute(times: &ScheduleSpec, time: &mut Tm) -> DateTimeMatch {
   match times.minutes.binary_search(&(time.tm_min as u32)) {
     Ok(_) => {
       // DONE

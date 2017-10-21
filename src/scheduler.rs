@@ -41,7 +41,7 @@ use error::CrontabError::ErrCronFormat;
 pub (crate) type SchedulerResult<'a> = Result<Scheduler<'a>, CrontabError>;
 
 #[derive(Clone, Debug, Default)]
-pub (crate) struct TimeSpec {
+pub (crate) struct ScheduleSpec {
   pub months: Vec<u32>,
   pub days: Vec<u32>,
   pub weekdays: Vec<u32>,
@@ -63,7 +63,7 @@ pub (crate) struct Scheduler<'a> {
 
   pub timePoints: HashMap<&'a str, HashSet<u32>>,
 
-  pub times: TimeSpec,
+  pub times: ScheduleSpec,
 
   re: Regex,
 }
@@ -104,7 +104,7 @@ impl<'a> Scheduler<'a> {
           weekdays: timeFileds[startIndex + 4],
           timeFiledsLength: timeFiledsLength,
           timePoints: HashMap::new(),
-          times: TimeSpec::default(),
+          times: ScheduleSpec::default(),
           re: re,
         };
 
