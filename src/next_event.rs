@@ -187,121 +187,122 @@ mod tests {
   use test_helpers::normal;
   use time::{Timespec, at_utc};
 
+  fn parse_times(schedule: &str) -> ScheduleSpec {
+    let schedule = Scheduler::new(schedule).ok().unwrap();
+    schedule.times
+  }
+
   #[test]
   fn every_minute() {
-    let schedule = Scheduler::new("* * * * *").ok().unwrap(); // every minute
-    let times = &schedule.times;
+    let times = parse_times("* * * * *"); // every minute
 
     // Advances the minute
     let tm = get_tm(2001, 1, 1, 12, 0, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2001, 1, 1, 12, 1, 0)));
 
     // Again
     let tm = get_tm(2001, 1, 1, 12, 30, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2001, 1, 1, 12, 31, 0)));
 
     // Advances the hour
     let tm = get_tm(2001, 1, 1, 12, 59, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2001, 1, 1, 13, 0, 0)));
 
     // Advances the day
     let tm = get_tm(2001, 1, 1, 23, 59, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2001, 1, 2, 0, 0, 0)));
 
     // Advances the month
     let tm = get_tm(2001, 1, 31, 23, 59, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2001, 2, 1, 0, 0, 0)));
 
     // Seconds get rounded up to the next minute
     let tm = get_tm(2001, 1, 1, 12, 0, 1);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2001, 1, 1, 12, 1, 0)));
   }
 
   #[test]
   fn every_fifteen_minutes() {
-    let schedule = Scheduler::new("*/15 * * * *").ok().unwrap();
-    let times = &schedule.times;
+    let times = parse_times("*/15 * * * *");
 
     // Minute before :15 (2017-05-15 11:14)
     let tm = get_tm(2017, 5, 15, 11, 14, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 5, 15, 11, 15, 0)));
 
     // Minute after :15 (2017-05-15 11:16)
     let tm = get_tm(2017, 5, 15, 11, 16, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 5, 15, 11, 30, 0)));
 
     // Minute after :30 (2017-05-15 11:31)
     let tm = get_tm(2017, 5, 15, 11, 31, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 5, 15, 11, 45, 0)));
 
     // Minute before :00 (2017-10-15 23:59)
     let tm = get_tm(2017, 10, 15, 23, 59, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 10, 16, 0, 0, 0)));
 
     // Two minutes before New Year (2017-12-31 23:58)
     let tm = get_tm(2017, 12, 31, 23, 58, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2018, 1, 1, 0, 0, 0)));
 
     // Minute before New Year (2017-12-31 23:59)
     let tm = get_tm(2017, 12, 31, 23, 59, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2018, 1, 1, 0, 0, 0)));
   }
 
   #[test]
   fn precise_date_and_time() {
-    let schedule = Scheduler::new("0 0 1 10 *").ok().unwrap(); // 0:00 Oct 1st
-    let times = &schedule.times;
+    let times = parse_times("0 0 1 10 *"); // 0:00 Oct 1st
 
     // Minute before
     let tm = get_tm(2017, 9, 30, 23, 59, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 10, 1, 0, 0, 0)));
 
     // Second before
     let tm = get_tm(2017, 9, 30, 23, 59, 59);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 10, 1, 0, 0, 0)));
 
     // Month before
     let tm = get_tm(2017, 9, 1, 0, 0, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 10, 1, 0, 0, 0)));
 
     // Minute after ... must wait a year!
     let tm = get_tm(2017, 10, 1, 0, 1, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2018, 10, 1, 0, 0, 0)));
 
     // Month after... must wait 11 months!
     let tm = get_tm(2017, 11, 1, 0, 0, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2018, 10, 1, 0, 0, 0)));
 
     // Now with more nonzero time fields...
     // Oct 13 @ 22:45
-    let schedule = Scheduler::new("45 22 13 10 *").ok().unwrap();
-    let times = &schedule.times;
+    let times = parse_times("45 22 13 10 *");
 
     // Before (all time fields are nonzero)
     let tm = get_tm(2017, 7, 4, 10, 30, 1);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2017, 10, 13, 22, 45, 0)));
 
     // After (all time fields are nonzero)
     let tm = get_tm(2017, 11, 15, 10, 30, 15);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2018, 10, 13, 22, 45, 0)));
   }
 
