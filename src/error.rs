@@ -1,8 +1,12 @@
 use std::num::ParseIntError;
 use std::fmt;
 
+// TODO: These errors could use some improvement.
+/// A library error.
 pub enum CrontabError {
+  /// Error parsing the crontab schedule.
   ErrCronFormat(String),
+  /// Error parsing an integer in a crontab schedule.
   ErrParseInt(ParseIntError),
 }
 
