@@ -18,7 +18,6 @@ mod test_helpers;
 
 mod error;
 mod crontab;
-mod next_event;
 mod scheduler;
 mod times;
 
