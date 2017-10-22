@@ -5,12 +5,12 @@ use time::Tm;
 
 /// Represents a crontab schedule.
 pub struct Crontab {
-  pub schedule: ScheduleSpec,
+  pub schedule: ScheduleComponents,
 }
 
 /// The components of a crontab schedule.
 #[derive(Clone, Debug, Default)]
-pub struct ScheduleSpec {
+pub struct ScheduleComponents {
   pub months: Vec<u32>,
   pub days: Vec<u32>,
   pub weekdays: Vec<u32>,

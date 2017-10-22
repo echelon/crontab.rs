@@ -33,7 +33,7 @@ use std::collections::{HashSet, HashMap};
 use time;
 use regex::Regex;
 
-use crontab::ScheduleSpec;
+use crontab::ScheduleComponents;
 use error::CrontabError::ErrCronFormat;
 use error::CrontabError;
 
@@ -53,7 +53,7 @@ pub (crate) struct Scheduler<'a> {
 
   pub timePoints: HashMap<&'a str, HashSet<u32>>,
 
-  pub times: ScheduleSpec,
+  pub times: ScheduleComponents,
 
   re: Regex,
 }
@@ -94,7 +94,7 @@ impl<'a> Scheduler<'a> {
           weekdays: timeFileds[startIndex + 4],
           timeFiledsLength: timeFiledsLength,
           timePoints: HashMap::new(),
-          times: ScheduleSpec::default(),
+          times: ScheduleComponents::default(),
           re: re,
         };
 
