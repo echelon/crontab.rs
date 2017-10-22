@@ -28,9 +28,7 @@
 #![allow(non_snake_case)]
 #![allow(unused_variables, dead_code)]
 
-use std::io::prelude::*;
 use std::collections::{HashSet, HashMap};
-use std::str::FromStr;
 
 use time;
 use regex::Regex;

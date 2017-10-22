@@ -169,7 +169,7 @@ mod tests {
 
     // Four more years...
     let mut expected = 0;
-    for i in 0 .. 1460 {
+    for _ in 0 .. 1460 {
       expected = (expected + 1) % 7;
       adv_day(&mut tm);
       expect!(tm.tm_wday).to(be_equal_to(expected));

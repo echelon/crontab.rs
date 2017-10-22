@@ -15,3 +15,5 @@ mod crontab;
 mod next_event;
 mod scheduler;
 mod times;
+
+pub use crontab::Crontab;

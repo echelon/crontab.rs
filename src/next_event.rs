@@ -1,6 +1,6 @@
 use scheduler::ScheduleSpec;
 use time::Tm;
-use times::{adv_year, adv_month, adv_day, adv_hour, adv_minute};
+use times::{adv_month, adv_day, adv_hour, adv_minute};
 
 // TODO/FIXME: API is a bit strange.
 /// Get the next time this schedule is to be executed.
