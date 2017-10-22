@@ -7,7 +7,7 @@ use time::Tm;
 /// (Currently this is just an opaque type over 'cron_rs'. In the future, this
 /// will contain its own parsing logic.)
 pub struct Crontab {
-  schedule: ScheduleSpec,
+  pub (crate) schedule: ScheduleSpec,
 }
 
 impl Crontab {

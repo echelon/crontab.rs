@@ -181,15 +181,15 @@ fn try_minute(times: &ScheduleSpec, time: &mut Tm) -> DateTimeMatch {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use crontab::Crontab;
   use expectest::prelude::*;
-  use scheduler::Scheduler;
   use test_helpers::get_tm;
   use test_helpers::normal;
   use time::{Timespec, at_utc};
 
   fn parse_times(schedule: &str) -> ScheduleSpec {
-    let schedule = Scheduler::new(schedule).ok().unwrap();
-    schedule.times
+    let crontab = Crontab::parse(schedule).ok().unwrap();
+    crontab.schedule
   }
 
   #[test]
@@ -309,109 +309,105 @@ mod tests {
   #[test]
   fn first_of_the_month() {
     // First of the month at 0:00.
-    let schedule = Scheduler::new("0 0 1 * *").ok().unwrap();
-    let times = &schedule.times;
+    let times = parse_times("0 0 1 * *");
 
     // A minute late... advances the month.
     let tm = get_tm(2004, 1, 1, 0, 1, 59);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2004, 2, 1, 0, 0, 0)));
 
     // A few hours late... advances the month.
     let tm = get_tm(2004, 1, 1, 12, 59, 59);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2004, 2, 1, 0, 0, 0)));
 
     // Halfway through month advances the month.
     let tm = get_tm(2004, 1, 15, 0, 0, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2004, 2, 1, 0, 0, 0)));
 
     // Halfway through month at end of year advances the year.
     let tm = get_tm(2004, 12, 15, 0, 0, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2005, 1, 1, 0, 0, 0)));
   }
 
   #[test]
   fn every_hour_in_january_and_july() {
     // Every single hour in January and July.
-    let schedule = Scheduler::new("0 * * 1,7 *").ok().unwrap();
-    let times = &schedule.times;
+    let times = parse_times("0 * * 1,7 *");
 
     // Last minute of December
     let tm = get_tm(2005, 12, 31, 23, 59, 59);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2006, 1, 1, 0, 0, 0)));
 
     // First hour of January... advances to the next hour
     let tm = get_tm(2005, 1, 1, 0, 0, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2005, 1, 1, 1, 0, 0)));
 
     // Noon January 15th... advances to the next hour
     let tm = get_tm(2005, 1, 15, 12, 0, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2005, 1, 15, 13, 0, 0)));
 
     // Last minute of January... advances to July.
     let tm = get_tm(2005, 1, 31, 23, 59, 59);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2005, 7, 1, 0, 0, 0)));
 
     // First hour of July... advances to the next hour
     let tm = get_tm(2005, 7, 1, 0, 0, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2005, 7, 1, 1, 0, 0)));
 
     // Last hour of July... advances to next year's January
     let tm = get_tm(2005, 7, 31, 23, 59, 59);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2006, 1, 1, 0, 0, 0)));
   }
 
   #[test]
   fn new_years() {
     // At the New Year's ball drop.
-    let schedule = Scheduler::new("0 0 1 1 *").ok().unwrap();
-    let times = &schedule.times;
+    let times = parse_times("0 0 1 1 *");
 
     // Last minute of December
     let tm = get_tm(2007, 12, 31, 23, 59, 59);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2008, 1, 1, 0, 0, 0)));
 
     // Minute zero of the new year... advances to next year
     let tm = get_tm(2007, 1, 1, 0, 0, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2008, 1, 1, 0, 0, 0)));
 
     // Minute five of the new year... advances to next year
     let tm = get_tm(2007, 1, 1, 0, 5, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2008, 1, 1, 0, 0, 0)));
 
     // Hour one of the new year... advances to next year
     let tm = get_tm(2007, 1, 1, 1, 0, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2008, 1, 1, 0, 0, 0)));
 
     // Day two of the new year... advances to next year
     let tm = get_tm(2007, 1, 2, 0, 0, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2008, 1, 1, 0, 0, 0)));
 
     // July advances to the next year
     let tm = get_tm(2007, 7, 1, 0, 0, 0);
-    let next = calculate_next_event(times, &tm).unwrap();
+    let next = calculate_next_event(&times, &tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2008, 1, 1, 0, 0, 0)));
   }
 
   #[test]
   fn spot_check_fields_every_day() {
     // Every single day at midnight.
-    let schedule = Scheduler::new("0 0 * * *").ok().unwrap();
-    let times = &schedule.times;
+    let times = parse_times("0 0 * * *");
 
     // 2017-01-01 00:00 UTC, a non-leap year starting on a Sunday (tm_wday=0).
     let timespec = Timespec::new(1483228800, 0);
@@ -429,7 +425,7 @@ mod tests {
     for _ in 0 .. 365 {
       // We expect the next event to be the next day.
       adv_day(&mut expected);
-      next = calculate_next_event(times, &last).unwrap();
+      next = calculate_next_event(&times, &last).unwrap();
 
       // Check expectations.
       expect!(next.tm_year).to(be_equal_to(expected.tm_year));
@@ -457,7 +453,7 @@ mod tests {
     for _ in 0 .. (365 * 2) {
       // We expect the next event to be the next day.
       adv_day(&mut expected);
-      next = calculate_next_event(times, &last).unwrap();
+      next = calculate_next_event(&times, &last).unwrap();
 
       // Check expectations.
       expect!(next.tm_year).to(be_equal_to(expected.tm_year));
@@ -485,7 +481,7 @@ mod tests {
     for _ in 0 .. 366 {
       // We expect the next event to be the next day.
       adv_day(&mut expected);
-      next = calculate_next_event(times, &last).unwrap();
+      next = calculate_next_event(&times, &last).unwrap();
 
       // Check expectations.
       expect!(next.tm_year).to(be_equal_to(expected.tm_year));
