@@ -33,20 +33,12 @@ use std::collections::{HashSet, HashMap};
 use time;
 use regex::Regex;
 
-use error::CrontabError;
+use crontab::ScheduleSpec;
 use error::CrontabError::ErrCronFormat;
+use error::CrontabError;
 
 pub (crate) type SchedulerResult<'a> = Result<Scheduler<'a>, CrontabError>;
 
-#[derive(Clone, Debug, Default)]
-pub (crate) struct ScheduleSpec {
-  pub months: Vec<u32>,
-  pub days: Vec<u32>,
-  pub weekdays: Vec<u32>,
-  pub hours: Vec<u32>,
-  pub minutes: Vec<u32>,
-  pub seconds: Vec<u32>,
-}
 
 #[derive(Debug)]
 pub (crate) struct Scheduler<'a> {

@@ -1,4 +1,4 @@
-use scheduler::ScheduleSpec;
+use crontab::ScheduleSpec;
 use time::Tm;
 use times::{adv_month, adv_day, adv_hour, adv_minute};
 

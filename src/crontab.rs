@@ -1,13 +1,22 @@
 use error::CrontabError;
 use next_event::calculate_next_event;
-use scheduler::{ScheduleSpec, Scheduler};
+use scheduler::Scheduler;
 use time::Tm;
 
-/// Represents a Crontab schedule.
-/// (Currently this is just an opaque type over 'cron_rs'. In the future, this
-/// will contain its own parsing logic.)
+/// Represents a crontab schedule.
 pub struct Crontab {
-  pub (crate) schedule: ScheduleSpec,
+  pub schedule: ScheduleSpec,
+}
+
+/// The components of a crontab schedule.
+#[derive(Clone, Debug, Default)]
+pub struct ScheduleSpec {
+  pub months: Vec<u32>,
+  pub days: Vec<u32>,
+  pub weekdays: Vec<u32>,
+  pub hours: Vec<u32>,
+  pub minutes: Vec<u32>,
+  pub seconds: Vec<u32>,
 }
 
 impl Crontab {
