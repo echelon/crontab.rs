@@ -40,6 +40,17 @@ impl Crontab {
   /// Given a start time, calculate the next time this event will take place.
   /// It will always return a time after the time provided, even if the time
   /// provided happens to be a time specified by the cron schedule.
+  ///
+  /// Usage:
+  ///
+  /// ```
+  /// extern crate crontab;
+  /// extern crate time;
+  ///
+  /// let ct = crontab::Crontab::parse("0 0 * * *").ok().unwrap(); // Every midnight.
+  /// let next = ct.find_event_after(&time::now()).unwrap();
+  /// println!("Next time is: {:?}", next);
+  /// ```
   pub fn find_event_after(&self, start_time: &Tm) -> Option<Tm> {
     calculate_next_event(&self.schedule, start_time)
   }
