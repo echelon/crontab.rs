@@ -570,4 +570,60 @@ mod tests {
     let next = crontab.find_event_after(&tm).unwrap();
     expect!(normal(&next)).to(be_equal_to(get_tm(2001, 1, 1, 12, 1, 0)));
   }
+
+  // TODO: inject a fake clock
+  #[test]
+  fn crontab_find_next_event() {
+    // Should be within 60 seconds.
+    let crontab = Crontab::parse("* * * * *").ok().unwrap(); // every minute
+    let current = now();
+    let next = crontab.find_next_event().unwrap();
+    let delta = next - current;
+    expect!(delta.num_seconds()).to(be_greater_or_equal_to(0));
+    expect!(delta.num_seconds()).to(be_less_than(60));
+
+    // Should be within 1 hour.
+    let crontab = Crontab::parse("0 * * * *").ok().unwrap(); // every hour
+    let current = now();
+    let next = crontab.find_next_event().unwrap();
+    let delta = next - current;
+    expect!(delta.num_hours()).to(be_greater_or_equal_to(0));
+    expect!(delta.num_hours()).to(be_less_than(1));
+
+    // Should be within 24 hours.
+    let crontab = Crontab::parse("0 0 * * *").ok().unwrap(); // every hour
+    let current = now();
+    let next = crontab.find_next_event().unwrap();
+    let delta = next - current;
+    expect!(delta.num_hours()).to(be_greater_or_equal_to(0));
+    expect!(delta.num_hours()).to(be_less_than(24));
+  }
+
+  // TODO: inject a fake clock
+  #[test]
+  fn crontab_find_next_event_utc() {
+    // Should be within 60 seconds.
+    let crontab = Crontab::parse("* * * * *").ok().unwrap(); // every minute
+    let current = now();
+    let next = crontab.find_next_event_utc().unwrap();
+    let delta = next - current;
+    expect!(delta.num_seconds()).to(be_greater_or_equal_to(0));
+    expect!(delta.num_seconds()).to(be_less_than(60));
+
+    // Should be within 1 hour.
+    let crontab = Crontab::parse("0 * * * *").ok().unwrap(); // every hour
+    let current = now();
+    let next = crontab.find_next_event_utc().unwrap();
+    let delta = next - current;
+    expect!(delta.num_hours()).to(be_greater_or_equal_to(0));
+    expect!(delta.num_hours()).to(be_less_than(1));
+
+    // Should be within 24 hours.
+    let crontab = Crontab::parse("0 0 * * *").ok().unwrap(); // every hour
+    let current = now();
+    let next = crontab.find_next_event_utc().unwrap();
+    let delta = next - current;
+    expect!(delta.num_hours()).to(be_greater_or_equal_to(0));
+    expect!(delta.num_hours()).to(be_less_than(24));
+  }
 }
