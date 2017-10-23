@@ -1,6 +1,6 @@
 use error::CrontabError;
 use scheduler::Scheduler;
-use time::Tm;
+use time::{Tm, now, now_utc};
 use times::{adv_month, adv_day, adv_hour, adv_minute};
 
 /// Represents a crontab schedule.
@@ -43,9 +43,23 @@ impl Crontab {
   pub fn find_event_after(&self, start_time: &Tm) -> Option<Tm> {
     calculate_next_event(&self.schedule, start_time)
   }
+
+  /// Find the next occurring event in current local timezone. Keep in mind that
+  /// Crontabs do not specify a timezone, so the schedule will be relative to
+  /// the local time when this function is used.
+  pub fn find_next_event(&self) -> Option<Tm> {
+    self.find_event_after(&now())
+  }
+
+  /// Find the next occurring event in UTC. Keep in mind that Crontabs do not
+  /// specify a timezone, so the schedule will be relative to UTC when this
+  /// function is used.
+  pub fn find_next_event_utc(&self) -> Option<Tm> {
+    self.find_event_after(&now_utc())
+  }
 }
 
-// TODO/FIXME: API is a bit strange.
+// TODO: Stop testing this. Test the Crontab method instead.
 pub (crate) fn calculate_next_event(times: &ScheduleComponents, time: &Tm)
     -> Option<Tm> {
   let mut next_time = time.clone();
@@ -547,5 +561,13 @@ mod tests {
     expect!(next.tm_yday).to(be_equal_to(0));
     expect!(next.tm_mday).to(be_equal_to(1)); // 1-indexed
     expect!(next.tm_wday).to(be_equal_to(5)); // 2018 starts on a Friday
+  }
+
+  #[test]
+  fn crontab_find_event_after() {
+    let crontab = Crontab::parse("* * * * *").ok().unwrap(); // every minute
+    let tm = get_tm(2001, 1, 1, 12, 0, 0);
+    let next = crontab.find_event_after(&tm).unwrap();
+    expect!(normal(&next)).to(be_equal_to(get_tm(2001, 1, 1, 12, 1, 0)));
   }
 }
