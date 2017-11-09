@@ -602,7 +602,7 @@ mod tests {
     expect!(delta.num_hours()).to(be_less_than(1));
 
     // Should be within 24 hours.
-    let crontab = Crontab::parse("0 0 * * *").ok().unwrap(); // every hour
+    let crontab = Crontab::parse("0 0 * * *").ok().unwrap(); // every day
     let current = now();
     let next = crontab.find_next_event().unwrap();
     let delta = next - current;
@@ -630,7 +630,7 @@ mod tests {
     expect!(delta.num_hours()).to(be_less_than(1));
 
     // Should be within 24 hours.
-    let crontab = Crontab::parse("0 0 * * *").ok().unwrap(); // every hour
+    let crontab = Crontab::parse("0 0 * * *").ok().unwrap(); // every day
     let current = now();
     let next = crontab.find_next_event_utc().unwrap();
     let delta = next - current;
