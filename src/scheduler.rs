@@ -23,7 +23,7 @@
 //! OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //! SOFTWARE.
 
-// TODO: Ditch this code.
+// TODO: Remove this code and the dep on regex.
 
 #![allow(non_snake_case)]
 #![allow(unused_variables, dead_code)]

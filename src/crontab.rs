@@ -4,6 +4,7 @@ use time::{Tm, now, now_utc};
 use times::{adv_month, adv_day, adv_hour, adv_minute};
 
 /// Represents a crontab schedule.
+#[derive(Clone)]
 pub struct Crontab {
   /// The components parsed from a crontab schedule.
   pub schedule: ScheduleComponents,

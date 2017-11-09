@@ -4,7 +4,7 @@
 use expectest::prelude::*;
 use time::Tm;
 
-// TODO: This isn't really necessary. Just hardcode dates and times.
+// TODO: Get rid of this. Not really necessary. Just hardcode dates and times.
 
 /// Get a Tm from a date. Months and days are supplied 1-indexed, but
 /// the Tm struct is inconsistently 0- and 1-indexed.

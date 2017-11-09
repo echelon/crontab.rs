@@ -2,11 +2,6 @@ crontab.rs
 ==========
 A lightweight crontab parser. Does not rely on Rust nightly features.
 
-Work in progress
-----------------
-This is a work in progress. The package is published as a placeholder.
-A working version will be published soon.
-
 License
 -------
 **BSD 4-clause**
