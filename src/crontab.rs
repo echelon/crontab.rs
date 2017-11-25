@@ -1,5 +1,5 @@
 use error::CrontabError;
-use scheduler::Scheduler;
+use parsing::{ScheduleComponents, parse_cron};
 use time::{Tm, now, now_utc};
 use times::{adv_month, adv_day, adv_hour, adv_minute};
 
@@ -10,30 +10,13 @@ pub struct Crontab {
   pub schedule: ScheduleComponents,
 }
 
-/// The components of a crontab schedule.
-#[derive(Clone, Debug, Default)]
-pub struct ScheduleComponents {
-  /// Months in the schedule.
-  pub months: Vec<u32>,
-  /// Days in the schedule.
-  pub days: Vec<u32>,
-  /// Weekdays in the schedule.
-  pub weekdays: Vec<u32>,
-  /// Hours in the schedule.
-  pub hours: Vec<u32>,
-  /// Minutes in the schedule.
-  pub minutes: Vec<u32>,
-  /// Seconds in the schedule.
-  pub seconds: Vec<u32>,
-}
-
 impl Crontab {
 
   /// Parse a crontab schedule into a Crontab instance.
   pub fn parse(crontab_schedule: &str) -> Result<Crontab, CrontabError> {
-    let scheduler = Scheduler::new(crontab_schedule)?;
+    let schedule = parse_cron(crontab_schedule)?;
     Ok(Crontab {
-      schedule: scheduler.times,
+      schedule: schedule,
     })
   }
 
