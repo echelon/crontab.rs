@@ -9,6 +9,12 @@ pub enum CrontabError {
   ErrCronFormat(String),
   /// Error parsing an integer in a crontab schedule.
   ErrParseInt(ParseIntError),
+  /// Parse error. When one of the cron schedule fields is outside of the
+  /// permitted range.
+  FieldOutsideRange {
+    /// Description of the error.
+    description: String,
+  },
 }
 
 impl From<ParseIntError> for CrontabError {
@@ -22,6 +28,9 @@ impl fmt::Display for CrontabError {
     match self {
       &CrontabError::ErrCronFormat(ref x) => write!(f, "<ErrCronFormat> {:?}", x),
       &CrontabError::ErrParseInt(ref e) => write!(f, "<ErrParseInt> {:?}", e),
+      &CrontabError::FieldOutsideRange{ ref description } => {
+        write!(f, "<FieldOutsideRange> {:?}", description)
+      },
     }
   }
 }
