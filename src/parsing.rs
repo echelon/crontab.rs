@@ -106,4 +106,15 @@ mod tests {
     expect!(parse_cron("\n\t* * * * * *\n\t")).to(be_err());
     expect!(parse_cron("\n\t* * * * *\n\t")).to(be_ok());
   }
+
+  #[test]
+  fn bare_wildcards() {
+    let parsed = parse_cron("* * * * *").unwrap();
+
+    expect!(parsed.minutes).to(be_equal_to((0..60).collect::<Vec<u32>>()));
+    expect!(parsed.hours).to(be_equal_to((0..24).collect::<Vec<u32>>()));
+    expect!(parsed.days).to(be_equal_to((1..32).collect::<Vec<u32>>()));
+    expect!(parsed.months).to(be_equal_to((1..13).collect::<Vec<u32>>()));
+    expect!(parsed.weekdays).to(be_equal_to((0..7).collect::<Vec<u32>>()));
+  }
 }
