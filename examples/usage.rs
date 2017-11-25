@@ -10,6 +10,8 @@ use time::{Timespec, at_utc};
 fn main() {
   let crontab = Crontab::parse("0 * * * *").ok().unwrap(); // every hour
 
+  println!("Schedule components: {:?}\n", crontab.schedule);
+
   let mut timestamp = 1500001200;
 
   for _i in 0..10 {
