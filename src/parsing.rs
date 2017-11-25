@@ -1,40 +1,32 @@
-
-//use crontab::ScheduleComponents;
-//use regex::Regex;
-use std::collections::HashSet;
 use error::CrontabError;
 
 /// The components of a crontab schedule.
 #[derive(Clone, Debug, Default)]
 pub struct ScheduleComponents {
-  /// Months in the schedule.
-  pub months: Vec<u32>,
-  /// Days in the schedule.
-  pub days: Vec<u32>,
-  /// Weekdays in the schedule.
-  pub weekdays: Vec<u32>,
-  /// Hours in the schedule.
-  pub hours: Vec<u32>,
   /// Minutes in the schedule.
   pub minutes: Vec<u32>,
+  /// Hours in the schedule.
+  pub hours: Vec<u32>,
+  /// Days in the schedule.
+  pub days: Vec<u32>,
+  /// Months in the schedule.
+  pub months: Vec<u32>,
+  /// Weekdays in the schedule.
+  pub weekdays: Vec<u32>,
   /// Seconds in the schedule.
+  /// TODO: Mark deprecated until implemented.
   pub seconds: Vec<u32>,
 }
 
 pub (crate) fn parse_cron(schedule: &str)
     -> Result<ScheduleComponents, CrontabError> {
-  // Regex is taken from 'cron-rs'
-  /*let regex = Regex::new(r"^\s*((\*(/\d+)?)|[0-9-,/]+)(\s+((\*(/\d+)?)|[0-9-,/]+)){4,5}\s*$")
-      .expect("Regex must parse");
-
-  if !regex.is_match(schedule) {
-    return Err(CrontabError::ErrCronFormat(format!("invalid format: {}", schedule)))
-  }*/
-
-  let fields : Vec<&str> = schedule.trim().split_whitespace().collect();
+  let fields : Vec<&str> = schedule.trim()
+      .split_whitespace()
+      .collect();
 
   if fields.len() != 5 {
-    return Err(CrontabError::ErrCronFormat(format!("invalid format: {}", schedule)))
+    return Err(CrontabError::ErrCronFormat(
+      format!("invalid format: {}", schedule)));
   }
 
   let minutes = parse_field(fields[0], 0, 59)?;
@@ -55,7 +47,6 @@ pub (crate) fn parse_cron(schedule: &str)
 
 fn parse_field(field: &str, min: u32, max: u32)
     -> Result<Vec<u32>, CrontabError> {
-  let mut instances : HashSet<u32> = HashSet::new();
   let mut components = Vec::new();
 
   if field == "*" {
@@ -68,8 +59,10 @@ fn parse_field(field: &str, min: u32, max: u32)
   for part in field.split(",") {
     let current = part.parse::<u32>()?;
 
-    if let Some(last) = components.last() /*&& last >= current */ {
-      //return CrontabError::ErrCronFormat("todo".to_string());
+    if let Some(last) = components.last() {
+      if last >= &current {
+        return Err(CrontabError::ErrCronFormat("todo".to_string())); // TODO
+      }
     }
     if current < min || current > max {
       return Err(CrontabError::ErrCronFormat(
@@ -116,5 +109,55 @@ mod tests {
     expect!(parsed.days).to(be_equal_to((1..32).collect::<Vec<u32>>()));
     expect!(parsed.months).to(be_equal_to((1..13).collect::<Vec<u32>>()));
     expect!(parsed.weekdays).to(be_equal_to((0..7).collect::<Vec<u32>>()));
+  }
+
+  #[test]
+  fn specified_minutes() {
+    let parsed = parse_cron("0 * * * *").unwrap();
+    expect!(parsed.minutes).to(be_equal_to(vec![0]));
+
+    let parsed = parse_cron("5,10,15 * * * *").unwrap();
+    expect!(parsed.minutes).to(be_equal_to(vec![5,10,15]));
+
+    let parsed = parse_cron("59 * * * *").unwrap();
+    expect!(parsed.minutes).to(be_equal_to(vec![59]));
+
+    // Outside range
+    let result = parse_cron("60 * * * *");
+    expect!(result).to(be_err());
+
+    let result = parse_cron("-1 * * * *");
+    expect!(result).to(be_err());
+  }
+
+  #[test]
+  fn specified_hours() {
+    let parsed = parse_cron("* 0 * * *").unwrap();
+    expect!(parsed.hours).to(be_equal_to(vec![0]));
+
+    let parsed = parse_cron("* 1,12,20 * * *").unwrap();
+    expect!(parsed.hours).to(be_equal_to(vec![1, 12, 20]));
+
+    let parsed = parse_cron("* 23 * * *").unwrap();
+    expect!(parsed.hours).to(be_equal_to(vec![23]));
+
+    // Outside range
+    let result = parse_cron("* 24 * * *");
+    expect!(result).to(be_err());
+
+    let result = parse_cron("* -1 * * *");
+    expect!(result).to(be_err());
+  }
+
+  #[test]
+  fn specified_values_must_be_in_order() {
+    expect!(parse_cron("1,2,3 * * * *")).to(be_ok());
+    expect!(parse_cron("3,2,1 * * * *")).to(be_err());
+  }
+
+  #[test]
+  fn specified_values_must_be_unique() {
+    expect!(parse_cron("1,2,3 * * * *")).to(be_ok());
+    expect!(parse_cron("1,1,1 * * * *")).to(be_err());
   }
 }
