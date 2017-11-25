@@ -42,7 +42,7 @@ pub (crate) fn parse_cron(schedule: &str)
 
   if fields.len() != 5 {
     return Err(CrontabError::ErrCronFormat(
-      format!("invalid format: {}", schedule)));
+      format!("Invalid format: {}", schedule)));
   }
 
   let minutes = parse_field(fields[0], 0, 59)?;
@@ -57,7 +57,7 @@ pub (crate) fn parse_cron(schedule: &str)
     days: days,
     months: months,
     weekdays: weekdays,
-    seconds: Vec::new(), // TODO: Remove until implemented.
+    seconds: Vec::new(), // FIXME: Implement (though nonstandard).
   })
 }
 
@@ -92,13 +92,13 @@ fn parse_field(field: &str, field_min: u32, field_max: u32)
     }
 
     if min < field_min {
-      return Err(CrontabError::ErrCronFormat(
-        format!("Value outside of [{},{}] range: {}", field_min, field_max, min)));
+      return Err(CrontabError::FieldOutsideRange(
+        format!("Value {} is less than minimum: {}", min, field_min)));
     }
 
     if max > field_max {
-      return Err(CrontabError::ErrCronFormat(
-        format!("Value outside of [{},{}] range: {}", field_min, field_max, max)));
+      return Err(CrontabError::FieldOutsideRange(
+        format!("Value {} is greater than maximum: {}", max, field_max)));
     }
 
     let values = (min .. max + 1).filter(|i| i % step == 0)

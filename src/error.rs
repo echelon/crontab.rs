@@ -1,8 +1,7 @@
-use std::num::ParseIntError;
 use std::fmt;
+use std::num::ParseIntError;
 
-// TODO: These errors could use some improvement.
-// TODO: A SINGLE PARSE ERROR TYPE.
+// TODO: These errors could use some improvement, but that would be breaking.
 /// A library error.
 #[derive(Debug)]
 pub enum CrontabError {
