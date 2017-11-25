@@ -116,7 +116,7 @@ mod tests {
   fn parse_fields() {
     // Precise number of fields
     expect!(parse_cron("* * * * *")).to(be_ok());
-    // Not enough fields
+    // Incorrect number of fields
     expect!(parse_cron("")).to(be_err());
     expect!(parse_cron("* * * *")).to(be_err());
     expect!(parse_cron("* * * * * *")).to(be_err());
@@ -124,19 +124,12 @@ mod tests {
 
   #[test]
   fn parse_whitespace() {
-    // Various allowed spacing
+    // Allowed whitespace
     expect!(parse_cron("  * * * * *  ")).to(be_ok());
     expect!(parse_cron("\n\t* * * * *\n\t")).to(be_ok());
     expect!(parse_cron("\n\t*\n\t*\n\t*\n\t*\n\t*\n\t")).to(be_ok());
     expect!(parse_cron("    *    *    *    *    *    ")).to(be_ok());
     expect!(parse_cron("\r\r*\r\n*\t\t*\t\t*\n  *\n\r")).to(be_ok());
-    // Wrong number of fields
-    expect!(parse_cron("   ")).to(be_err());
-    expect!(parse_cron("  * * * *  ")).to(be_err());
-    expect!(parse_cron("  * * * * * *  ")).to(be_err());
-    expect!(parse_cron("\n\t")).to(be_err());
-    expect!(parse_cron("\n\t* * * *\n\t")).to(be_err());
-    expect!(parse_cron("\n\t* * * * * *\n\t")).to(be_err());
   }
 
   #[test]
@@ -312,5 +305,31 @@ mod tests {
   fn values_in_order() {
     let parsed = parse_cron("4,3,1,2 * * * *").unwrap();
     expect!(parsed.minutes).to(be_equal_to(vec![1,2,3,4]));
+  }
+
+  #[test]
+  fn misc_parse_errors() {
+    // Invalid values
+    expect!(parse_cron("A B C D E")).to(be_err());
+    expect!(parse_cron("*A *B *C *D *E")).to(be_err());
+
+    // No numeric values
+    expect!(parse_cron(", * * * *")).to(be_err());
+    expect!(parse_cron(",,,, * * * *")).to(be_err());
+
+    // No range
+    expect!(parse_cron("- * * * *")).to(be_err());
+    expect!(parse_cron(",- * * * *")).to(be_err());
+    expect!(parse_cron("-,- * * * *")).to(be_err());
+    expect!(parse_cron(",-,- * * * *")).to(be_err());
+    expect!(parse_cron(",-,-, * * * *")).to(be_err());
+
+    // Allowed whitespace, but incorrect number of fields
+    expect!(parse_cron("   ")).to(be_err());
+    expect!(parse_cron("  * * * *  ")).to(be_err());
+    expect!(parse_cron("  * * * * * *  ")).to(be_err());
+    expect!(parse_cron("\n\t")).to(be_err());
+    expect!(parse_cron("\n\t* * * *\n\t")).to(be_err());
+    expect!(parse_cron("\n\t* * * * * *\n\t")).to(be_err());
   }
 }
