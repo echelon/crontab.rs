@@ -113,11 +113,13 @@ mod tests {
   use expectest::prelude::*;
 
   #[test]
-  fn parse_correct_size() {
+  fn parse_fields() {
+    // Precise number of fields
+    expect!(parse_cron("* * * * *")).to(be_ok());
+    // Not enough fields
     expect!(parse_cron("")).to(be_err());
     expect!(parse_cron("* * * *")).to(be_err());
     expect!(parse_cron("* * * * * *")).to(be_err());
-    expect!(parse_cron("* * * * *")).to(be_ok());
   }
 
   #[test]
@@ -157,7 +159,7 @@ mod tests {
   }
 
   #[test]
-  fn specified_minutes() {
+  fn exact_minutes() {
     let parsed = parse_cron("0 * * * *").unwrap();
     expect!(parsed.minutes).to(be_equal_to(vec![0]));
 
@@ -173,7 +175,7 @@ mod tests {
   }
 
   #[test]
-  fn specified_hours() {
+  fn exact_hours() {
     let parsed = parse_cron("* 0 * * *").unwrap();
     expect!(parsed.hours).to(be_equal_to(vec![0]));
 
@@ -189,7 +191,7 @@ mod tests {
   }
 
   #[test]
-  fn specified_days() {
+  fn exact_days() {
     let parsed = parse_cron("* * 1 * *").unwrap();
     expect!(parsed.days).to(be_equal_to(vec![1]));
 
@@ -206,7 +208,7 @@ mod tests {
   }
 
   #[test]
-  fn specified_months() {
+  fn exact_months() {
     let parsed = parse_cron("* * * 1 *").unwrap();
     expect!(parsed.months).to(be_equal_to(vec![1]));
 
@@ -223,7 +225,7 @@ mod tests {
   }
 
   #[test]
-  fn specified_weekdays() {
+  fn exact_weekdays() {
     let parsed = parse_cron("* * * * 0").unwrap();
     expect!(parsed.weekdays).to(be_equal_to(vec![0]));
 
@@ -239,13 +241,14 @@ mod tests {
   }
 
   #[test]
-  fn no_duplicated_values() {
+  fn values_deduped() {
     let parsed = parse_cron("1,1,1,1 * * * *").unwrap();
     expect!(parsed.minutes).to(be_equal_to(vec![1]));
 
     let parsed = parse_cron("1,1-3 * * * *").unwrap();
     expect!(parsed.minutes).to(be_equal_to(vec![1,2,3]));
 
+    // TODO:
     //let parsed = parse_cron("* * */2 * *").unwrap();
     //expect!(parsed.months).to(be_equal_to(vec![0, 2, 4, 6, 8, 10, 12]));
   }
