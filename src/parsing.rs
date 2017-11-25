@@ -123,11 +123,8 @@ mod tests {
     expect!(parsed.minutes).to(be_equal_to(vec![59]));
 
     // Outside range
-    let result = parse_cron("60 * * * *");
-    expect!(result).to(be_err());
-
-    let result = parse_cron("-1 * * * *");
-    expect!(result).to(be_err());
+    expect!(parse_cron("60 * * * *")).to(be_err());
+    expect!(parse_cron("-1 * * * *")).to(be_err());
   }
 
   #[test]
@@ -142,11 +139,58 @@ mod tests {
     expect!(parsed.hours).to(be_equal_to(vec![23]));
 
     // Outside range
-    let result = parse_cron("* 24 * * *");
-    expect!(result).to(be_err());
+    expect!(parse_cron("* 24 * * *")).to(be_err());
+    expect!(parse_cron("* -1 * * *")).to(be_err());
+  }
 
-    let result = parse_cron("* -1 * * *");
-    expect!(result).to(be_err());
+  #[test]
+  fn specified_days() {
+    let parsed = parse_cron("* * 1 * *").unwrap();
+    expect!(parsed.days).to(be_equal_to(vec![1]));
+
+    let parsed = parse_cron("* * 1,10,20,30 * *").unwrap();
+    expect!(parsed.days).to(be_equal_to(vec![1, 10, 20, 30]));
+
+    let parsed = parse_cron("* * 31 * *").unwrap();
+    expect!(parsed.days).to(be_equal_to(vec![31]));
+
+    // Outside range
+    expect!(parse_cron("* * 0 * *")).to(be_err());
+    expect!(parse_cron("* * 32 * *")).to(be_err());
+    expect!(parse_cron("* * -1 * *")).to(be_err());
+  }
+
+  #[test]
+  fn specified_months() {
+    let parsed = parse_cron("* * * 1 *").unwrap();
+    expect!(parsed.months).to(be_equal_to(vec![1]));
+
+    let parsed = parse_cron("* * * 1,5,7,10 *").unwrap();
+    expect!(parsed.months).to(be_equal_to(vec![1, 5, 7, 10]));
+
+    let parsed = parse_cron("* * * 12 *").unwrap();
+    expect!(parsed.months).to(be_equal_to(vec![12]));
+
+    // Outside range
+    expect!(parse_cron("* * * 0 *")).to(be_err());
+    expect!(parse_cron("* * * 13 *")).to(be_err());
+    expect!(parse_cron("* * * -1 *")).to(be_err());
+  }
+
+  #[test]
+  fn specified_weekdays() {
+    let parsed = parse_cron("* * * * 0").unwrap();
+    expect!(parsed.weekdays).to(be_equal_to(vec![0]));
+
+    let parsed = parse_cron("* * * * 1,2").unwrap();
+    expect!(parsed.weekdays).to(be_equal_to(vec![1, 2]));
+
+    let parsed = parse_cron("* * * * 6").unwrap();
+    expect!(parsed.weekdays).to(be_equal_to(vec![6]));
+
+    // Outside range
+    expect!(parse_cron("* * * * 7")).to(be_err());
+    expect!(parse_cron("* * * * -1")).to(be_err());
   }
 
   #[test]
