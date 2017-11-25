@@ -134,6 +134,11 @@ mod tests {
     expect!(parse_cron("\n\t* * * *\n\t")).to(be_err());
     expect!(parse_cron("\n\t* * * * * *\n\t")).to(be_err());
     expect!(parse_cron("\n\t* * * * *\n\t")).to(be_ok());
+
+    // More spaces
+    expect!(parse_cron("\n\t*\n\t*\n\t*\n\t*\n\t*\n\t")).to(be_ok());
+    expect!(parse_cron("    *    *    *    *    *    ")).to(be_ok());
+    expect!(parse_cron("\r\r*\r\n*\t\t*\t\t*\n  *\n\r")).to(be_ok());
   }
 
   #[test]
