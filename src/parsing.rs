@@ -173,6 +173,17 @@ mod tests {
   }
 
   #[test]
+  fn ranges_with_step() {
+    let parsed = parse_cron("0-30/5 0-12/2 1-20/5 1-10/2 0-5/2").unwrap();
+
+    expect!(parsed.minutes).to(be_equal_to(vec![0,5,10,15,20,25,30]));
+    expect!(parsed.hours).to(be_equal_to(vec![0,2,4,6,8,10,12]));
+    expect!(parsed.days).to(be_equal_to(vec![5,10,15,20]));
+    expect!(parsed.months).to(be_equal_to(vec![2,4,6,8,10]));
+    expect!(parsed.weekdays).to(be_equal_to(vec![0,2,4]));
+  }
+
+  #[test]
   fn comma_separated() {
     let parsed = parse_cron("0,5,15 0,12 1,15 1,3,6,9,12 0,1,2,3,4").unwrap();
 
