@@ -1,6 +1,21 @@
 crontab.rs
 ==========
-A lightweight crontab parser. Does not rely on Rust nightly features.
+A lightweight crontab parser with minimal features that does not rely on
+Rust nightly.
+
+Supports the following:
+
+- Wildcards: `* * * * *`
+- Values: `0 0 1 1 *`
+- Multiple values: `0,5,10 * * * *`
+- Ranges: `0-30 * * * *`
+- Steps: `*/15 * * * *`
+- Combinations of all of the above: `1,2,3,5-10,*/15 * * * *`
+
+Usage
+-----
+See `examples/usage.rs`, which is guaranteed to compile with the current
+library version.
 
 License
 -------
