@@ -16,7 +16,7 @@ pub struct ScheduleComponents {
   /// Weekdays in the schedule.
   pub weekdays: Vec<u32>,
   /// Seconds in the schedule.
-  /// TODO: Mark deprecated until implemented.
+  #[deprecated(since="0.2.0", note="Field is never set!")]
   pub seconds: Vec<u32>,
 }
 
