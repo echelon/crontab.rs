@@ -5,19 +5,31 @@ use std::collections::HashSet;
 use std::iter::FromIterator;
 
 /// The components of a crontab schedule.
+/// The values in each field are guaranteed to be both unique and ordered.
 #[derive(Clone, Debug, Default)]
 pub struct ScheduleComponents {
   /// Minutes in the schedule.
+  /// Range [0,59] inclusive.
   pub minutes: Vec<u32>,
+
   /// Hours in the schedule.
+  /// Range [0,23] inclusive.
   pub hours: Vec<u32>,
-  /// Days in the schedule.
+
+  /// Days of the month in the schedule.
+  /// Range [1,31] inclusive.
   pub days: Vec<u32>,
+
   /// Months in the schedule.
+  /// Range [1,12] inclusive.
   pub months: Vec<u32>,
-  /// Weekdays in the schedule.
+
+  /// Days of the week in the schedule.
+  /// Range [0,6] inclusive.
   pub weekdays: Vec<u32>,
+
   /// Seconds in the schedule.
+  /// Not yet in use. Do not use.
   #[deprecated(since="0.2.0", note="Field is never set!")]
   pub seconds: Vec<u32>,
 }
@@ -64,13 +76,6 @@ fn parse_field(field: &str, field_min: u32, field_max: u32)
 
     // ranges, eg. 1-30
     let range : Vec<&str> = stepped[0].splitn(2, "-").collect();
-
-    // TODO: Test all -
-    // Value: 1
-    // All: *
-    // Range: 1-30
-    // Divided: */2,
-    // Divided Range: 1-30/2
 
     if stepped.len() == 2 {
       step = stepped[1].parse::<u32>()?;
