@@ -33,9 +33,9 @@ use std::collections::{HashSet, HashMap};
 use time;
 use regex::Regex;
 
-use crontab::ScheduleComponents;
 use error::CrontabError::ErrCronFormat;
 use error::CrontabError;
+use parsing::ScheduleComponents;
 
 pub (crate) type SchedulerResult<'a> = Result<Scheduler<'a>, CrontabError>;
 

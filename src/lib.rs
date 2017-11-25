@@ -16,14 +16,15 @@ extern crate expectest;
 #[cfg(test)]
 mod test_helpers;
 
-mod error;
 mod crontab;
+mod error;
+mod parsing;
 mod scheduler;
 mod times;
 
 // Exports
 pub use crontab::Crontab;
-pub use crontab::ScheduleComponents;
+pub use parsing::ScheduleComponents;
 
 // Re-exports.
 pub use time::Tm;

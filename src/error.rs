@@ -3,6 +3,7 @@ use std::fmt;
 
 // TODO: These errors could use some improvement.
 /// A library error.
+#[derive(Debug)]
 pub enum CrontabError {
   /// Error parsing the crontab schedule.
   ErrCronFormat(String),
