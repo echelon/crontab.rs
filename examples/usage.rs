@@ -8,7 +8,7 @@ use crontab::Tm;
 use time::{Timespec, at_utc};
 
 fn main() {
-  let crontab = Crontab::parse("0 * * * *").ok().unwrap(); // every hour
+  let crontab = Crontab::parse("0 * * * *").expect("unparsable"); // every hour
 
   println!("Schedule components: {:?}\n", crontab.schedule);
 
