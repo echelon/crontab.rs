@@ -2,6 +2,7 @@ use std::num::ParseIntError;
 use std::fmt;
 
 // TODO: These errors could use some improvement.
+// TODO: A SINGLE PARSE ERROR TYPE.
 /// A library error.
 #[derive(Debug)]
 pub enum CrontabError {

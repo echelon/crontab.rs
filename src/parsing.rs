@@ -1,4 +1,6 @@
 use error::CrontabError;
+use std::collections::HashSet;
+use std::iter::FromIterator;
 
 /// The components of a crontab schedule.
 #[derive(Clone, Debug, Default)]
@@ -45,19 +47,54 @@ pub (crate) fn parse_cron(schedule: &str)
   })
 }
 
-fn parse_field(field: &str, min: u32, max: u32)
+fn parse_field(field: &str, field_min: u32, field_max: u32)
     -> Result<Vec<u32>, CrontabError> {
-  let mut components = Vec::new();
 
-  if field == "*" {
-    for i in min .. (max + 1) {
-      components.push(i);
-    }
-    return Ok(components);
-  }
+  let mut min = field_min;
+  let mut max = field_max;
+  let mut step = 1;
+
+  let mut components = HashSet::<u32>::new();
 
   for part in field.split(",") {
-    let current = part.parse::<u32>()?;
+    // stepped, eg. */2 or 1-45/3
+    let stepped : Vec<&str> = part.splitn(2, "/").collect();
+
+    // ranges, eg. 1-30
+    let range : Vec<&str> = stepped[0].splitn(2, "-").collect();
+
+    // TODO: Test all -
+    // Value: 1
+    // All: *
+    // Range: 1-30
+    // Divided: */2,
+    // Divided Range: 1-30/2
+
+    if stepped.len() == 2 {
+      step = stepped[1].parse::<u32>()?;
+    }
+
+    if range.len() == 2 {
+      min = range[0].parse::<u32>()?;
+      max = range[1].parse::<u32>()?;
+    }
+
+    if stepped.len() == 1 && range.len() == 1 && part != "*" {
+      min = part.parse::<u32>()?;
+      max = min;
+    }
+
+    if min < field_min {
+      return Err(CrontabError::ErrCronFormat(
+        format!("Value outside of [{},{}] range: {}", field_min, field_max, min)));
+    }
+
+    if max > field_max {
+      return Err(CrontabError::ErrCronFormat(
+        format!("Value outside of [{},{}] range: {}", field_min, field_max, max)));
+    }
+
+    /*let current = part.parse::<u32>()?;
 
     if let Some(last) = components.last() {
       if last >= &current {
@@ -68,8 +105,15 @@ fn parse_field(field: &str, min: u32, max: u32)
       return Err(CrontabError::ErrCronFormat(
         format!("Value outside of [{},{}] range: {}", min, max, current)));
     }
-    components.push(current);
+    components.push(current);*/
+
+
+    let values = (min .. max + 1).filter(|i| i % step == 0).collect::<Vec<u32>>();
+    components.extend(values);
   }
+
+  let mut components : Vec<u32> = Vec::from_iter(components.into_iter());
+  components.sort();
 
   Ok(components)
 }
@@ -194,14 +238,14 @@ mod tests {
   }
 
   #[test]
-  fn specified_values_must_be_in_order() {
-    expect!(parse_cron("1,2,3 * * * *")).to(be_ok());
-    expect!(parse_cron("3,2,1 * * * *")).to(be_err());
+  fn no_duplicated_values() {
+    let parsed = parse_cron("1,1,1,1 * * * *").unwrap();
+    expect!(parsed.minutes).to(be_equal_to(vec![1]));
   }
 
   #[test]
-  fn specified_values_must_be_unique() {
-    expect!(parse_cron("1,2,3 * * * *")).to(be_ok());
-    expect!(parse_cron("1,1,1 * * * *")).to(be_err());
+  fn values_in_order() {
+    let parsed = parse_cron("4,3,1,2 * * * *").unwrap();
+    expect!(parsed.minutes).to(be_equal_to(vec![1,2,3,4]));
   }
 }
