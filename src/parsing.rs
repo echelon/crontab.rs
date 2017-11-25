@@ -50,13 +50,13 @@ pub (crate) fn parse_cron(schedule: &str)
 fn parse_field(field: &str, field_min: u32, field_max: u32)
     -> Result<Vec<u32>, CrontabError> {
 
-  let mut min = field_min;
-  let mut max = field_max;
-  let mut step = 1;
-
   let mut components = HashSet::<u32>::new();
 
   for part in field.split(",") {
+    let mut min = field_min;
+    let mut max = field_max;
+    let mut step = 1;
+
     // stepped, eg. */2 or 1-45/3
     let stepped : Vec<&str> = part.splitn(2, "/").collect();
 
@@ -293,9 +293,8 @@ mod tests {
     let parsed = parse_cron("1,1-3 * * * *").unwrap();
     expect!(parsed.minutes).to(be_equal_to(vec![1,2,3]));
 
-    // TODO:
-    //let parsed = parse_cron("* * */2 * *").unwrap();
-    //expect!(parsed.months).to(be_equal_to(vec![0, 2, 4, 6, 8, 10, 12]));
+    let parsed = parse_cron("* * * 1-4,2,4,*/2 *").unwrap();
+    expect!(parsed.months).to(be_equal_to(vec![1, 2, 3, 4, 6, 8, 10, 12]));
   }
 
   #[test]
