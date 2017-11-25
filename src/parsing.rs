@@ -159,6 +159,17 @@ mod tests {
   }
 
   #[test]
+  fn step() {
+    let parsed = parse_cron("*/15 */4 */10 */3 */2").unwrap();
+
+    expect!(parsed.minutes).to(be_equal_to(vec![0,15,30,45]));
+    expect!(parsed.hours).to(be_equal_to(vec![0,4,8,12,16,20]));
+    expect!(parsed.days).to(be_equal_to(vec![10,20,30]));
+    expect!(parsed.months).to(be_equal_to(vec![3,6,9,12]));
+    expect!(parsed.weekdays).to(be_equal_to(vec![0,2,4,6]));
+  }
+
+  #[test]
   fn exact_minutes() {
     let parsed = parse_cron("0 * * * *").unwrap();
     expect!(parsed.minutes).to(be_equal_to(vec![0]));
