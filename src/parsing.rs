@@ -94,21 +94,9 @@ fn parse_field(field: &str, field_min: u32, field_max: u32)
         format!("Value outside of [{},{}] range: {}", field_min, field_max, max)));
     }
 
-    /*let current = part.parse::<u32>()?;
+    let values = (min .. max + 1).filter(|i| i % step == 0)
+        .collect::<Vec<u32>>();
 
-    if let Some(last) = components.last() {
-      if last >= &current {
-        return Err(CrontabError::ErrCronFormat("todo".to_string())); // TODO
-      }
-    }
-    if current < min || current > max {
-      return Err(CrontabError::ErrCronFormat(
-        format!("Value outside of [{},{}] range: {}", min, max, current)));
-    }
-    components.push(current);*/
-
-
-    let values = (min .. max + 1).filter(|i| i % step == 0).collect::<Vec<u32>>();
     components.extend(values);
   }
 
@@ -130,13 +118,15 @@ mod tests {
     expect!(parse_cron("* * * *")).to(be_err());
     expect!(parse_cron("* * * * * *")).to(be_err());
     expect!(parse_cron("* * * * *")).to(be_ok());
+  }
 
+  #[test]
+  fn parse_whitespace() {
     // Leading and trailing spaces
     expect!(parse_cron("   ")).to(be_err());
     expect!(parse_cron("  * * * *  ")).to(be_err());
     expect!(parse_cron("  * * * * * *  ")).to(be_err());
     expect!(parse_cron("  * * * * *  ")).to(be_ok());
-
     // Newlines, tabs
     expect!(parse_cron("\n\t")).to(be_err());
     expect!(parse_cron("\n\t* * * *\n\t")).to(be_err());
@@ -145,7 +135,7 @@ mod tests {
   }
 
   #[test]
-  fn bare_wildcards() {
+  fn wildcards() {
     let parsed = parse_cron("* * * * *").unwrap();
 
     expect!(parsed.minutes).to(be_equal_to((0..60).collect::<Vec<u32>>()));
@@ -153,6 +143,17 @@ mod tests {
     expect!(parsed.days).to(be_equal_to((1..32).collect::<Vec<u32>>()));
     expect!(parsed.months).to(be_equal_to((1..13).collect::<Vec<u32>>()));
     expect!(parsed.weekdays).to(be_equal_to((0..7).collect::<Vec<u32>>()));
+  }
+
+  #[test]
+  fn ranges() {
+    let parsed = parse_cron("0-5 20-23 1-5 1-6 0-6").unwrap();
+
+    expect!(parsed.minutes).to(be_equal_to(vec![0,1,2,3,4,5]));
+    expect!(parsed.hours).to(be_equal_to(vec![20,21,22,23]));
+    expect!(parsed.days).to(be_equal_to(vec![1,2,3,4,5]));
+    expect!(parsed.months).to(be_equal_to(vec![1,2,3,4,5,6]));
+    expect!(parsed.weekdays).to(be_equal_to(vec![0,1,2,3,4,5,6]));
   }
 
   #[test]
@@ -241,6 +242,12 @@ mod tests {
   fn no_duplicated_values() {
     let parsed = parse_cron("1,1,1,1 * * * *").unwrap();
     expect!(parsed.minutes).to(be_equal_to(vec![1]));
+
+    let parsed = parse_cron("1,1-3 * * * *").unwrap();
+    expect!(parsed.minutes).to(be_equal_to(vec![1,2,3]));
+
+    //let parsed = parse_cron("* * */2 * *").unwrap();
+    //expect!(parsed.months).to(be_equal_to(vec![0, 2, 4, 6, 8, 10, 12]));
   }
 
   #[test]
