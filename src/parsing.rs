@@ -170,6 +170,17 @@ mod tests {
   }
 
   #[test]
+  fn comma_separated() {
+    let parsed = parse_cron("0,5,15 0,12 1,15 1,3,6,9,12 0,1,2,3,4").unwrap();
+
+    expect!(parsed.minutes).to(be_equal_to(vec![0,5,15]));
+    expect!(parsed.hours).to(be_equal_to(vec![0,12]));
+    expect!(parsed.days).to(be_equal_to(vec![1,15]));
+    expect!(parsed.months).to(be_equal_to(vec![1,3,6,9,12]));
+    expect!(parsed.weekdays).to(be_equal_to(vec![0,1,2,3,4]));
+  }
+
+  #[test]
   fn exact_minutes() {
     let parsed = parse_cron("0 * * * *").unwrap();
     expect!(parsed.minutes).to(be_equal_to(vec![0]));
@@ -179,10 +190,6 @@ mod tests {
 
     let parsed = parse_cron("59 * * * *").unwrap();
     expect!(parsed.minutes).to(be_equal_to(vec![59]));
-
-    // Outside range
-    expect!(parse_cron("60 * * * *")).to(be_err());
-    expect!(parse_cron("-1 * * * *")).to(be_err());
   }
 
   #[test]
@@ -195,10 +202,6 @@ mod tests {
 
     let parsed = parse_cron("* 23 * * *").unwrap();
     expect!(parsed.hours).to(be_equal_to(vec![23]));
-
-    // Outside range
-    expect!(parse_cron("* 24 * * *")).to(be_err());
-    expect!(parse_cron("* -1 * * *")).to(be_err());
   }
 
   #[test]
@@ -211,11 +214,6 @@ mod tests {
 
     let parsed = parse_cron("* * 31 * *").unwrap();
     expect!(parsed.days).to(be_equal_to(vec![31]));
-
-    // Outside range
-    expect!(parse_cron("* * 0 * *")).to(be_err());
-    expect!(parse_cron("* * 32 * *")).to(be_err());
-    expect!(parse_cron("* * -1 * *")).to(be_err());
   }
 
   #[test]
@@ -228,11 +226,6 @@ mod tests {
 
     let parsed = parse_cron("* * * 12 *").unwrap();
     expect!(parsed.months).to(be_equal_to(vec![12]));
-
-    // Outside range
-    expect!(parse_cron("* * * 0 *")).to(be_err());
-    expect!(parse_cron("* * * 13 *")).to(be_err());
-    expect!(parse_cron("* * * -1 *")).to(be_err());
   }
 
   #[test]
@@ -245,8 +238,29 @@ mod tests {
 
     let parsed = parse_cron("* * * * 6").unwrap();
     expect!(parsed.weekdays).to(be_equal_to(vec![6]));
+  }
 
-    // Outside range
+  #[test]
+  fn exact_values_outside_range() {
+    // Minutes
+    expect!(parse_cron("60 * * * *")).to(be_err());
+    expect!(parse_cron("-1 * * * *")).to(be_err());
+
+    // Hours
+    expect!(parse_cron("* 24 * * *")).to(be_err());
+    expect!(parse_cron("* -1 * * *")).to(be_err());
+
+    // Days
+    expect!(parse_cron("* * 0 * *")).to(be_err());
+    expect!(parse_cron("* * 32 * *")).to(be_err());
+    expect!(parse_cron("* * -1 * *")).to(be_err());
+
+    // Months
+    expect!(parse_cron("* * * 0 *")).to(be_err());
+    expect!(parse_cron("* * * 13 *")).to(be_err());
+    expect!(parse_cron("* * * -1 *")).to(be_err());
+
+    // Weekdays
     expect!(parse_cron("* * * * 7")).to(be_err());
     expect!(parse_cron("* * * * -1")).to(be_err());
   }
