@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use error::CrontabError;
 use std::collections::HashSet;
 use std::iter::FromIterator;

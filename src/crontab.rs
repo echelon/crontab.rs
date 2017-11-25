@@ -1,6 +1,5 @@
 use error::CrontabError;
-use parsing::ScheduleComponents;
-use scheduler::Scheduler;
+use parsing::{ScheduleComponents, parse_cron};
 use time::{Tm, now, now_utc};
 use times::{adv_month, adv_day, adv_hour, adv_minute};
 
@@ -15,9 +14,9 @@ impl Crontab {
 
   /// Parse a crontab schedule into a Crontab instance.
   pub fn parse(crontab_schedule: &str) -> Result<Crontab, CrontabError> {
-    let scheduler = Scheduler::new(crontab_schedule)?;
+    let schedule = parse_cron(crontab_schedule)?;
     Ok(Crontab {
-      schedule: scheduler.times,
+      schedule: schedule,
     })
   }
 

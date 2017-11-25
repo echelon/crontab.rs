@@ -1,5 +1,6 @@
 //! Crontab.rs is a library for parsing cron schedule expressions.
 
+#![deny(deprecated)]
 #![deny(missing_docs)]
 #![deny(unreachable_patterns)]
 #![deny(unused_extern_crates)]
@@ -7,7 +8,6 @@
 #![deny(unused_qualifications)]
 
 extern crate time;
-extern crate regex;
 
 #[cfg(test)]
 #[macro_use(expect)]
@@ -19,7 +19,6 @@ mod test_helpers;
 mod crontab;
 mod error;
 mod parsing;
-mod scheduler;
 mod times;
 
 // Exports
