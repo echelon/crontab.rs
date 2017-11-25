@@ -124,21 +124,19 @@ mod tests {
 
   #[test]
   fn parse_whitespace() {
-    // Leading and trailing spaces
-    expect!(parse_cron("   ")).to(be_err());
-    expect!(parse_cron("  * * * *  ")).to(be_err());
-    expect!(parse_cron("  * * * * * *  ")).to(be_err());
+    // Various allowed spacing
     expect!(parse_cron("  * * * * *  ")).to(be_ok());
-    // Newlines, tabs
-    expect!(parse_cron("\n\t")).to(be_err());
-    expect!(parse_cron("\n\t* * * *\n\t")).to(be_err());
-    expect!(parse_cron("\n\t* * * * * *\n\t")).to(be_err());
     expect!(parse_cron("\n\t* * * * *\n\t")).to(be_ok());
-
-    // More spaces
     expect!(parse_cron("\n\t*\n\t*\n\t*\n\t*\n\t*\n\t")).to(be_ok());
     expect!(parse_cron("    *    *    *    *    *    ")).to(be_ok());
     expect!(parse_cron("\r\r*\r\n*\t\t*\t\t*\n  *\n\r")).to(be_ok());
+    // Wrong number of fields
+    expect!(parse_cron("   ")).to(be_err());
+    expect!(parse_cron("  * * * *  ")).to(be_err());
+    expect!(parse_cron("  * * * * * *  ")).to(be_err());
+    expect!(parse_cron("\n\t")).to(be_err());
+    expect!(parse_cron("\n\t* * * *\n\t")).to(be_err());
+    expect!(parse_cron("\n\t* * * * * *\n\t")).to(be_err());
   }
 
   #[test]
@@ -250,24 +248,41 @@ mod tests {
     // Minutes
     expect!(parse_cron("60 * * * *")).to(be_err());
     expect!(parse_cron("-1 * * * *")).to(be_err());
-
     // Hours
     expect!(parse_cron("* 24 * * *")).to(be_err());
     expect!(parse_cron("* -1 * * *")).to(be_err());
-
     // Days
     expect!(parse_cron("* * 0 * *")).to(be_err());
     expect!(parse_cron("* * 32 * *")).to(be_err());
     expect!(parse_cron("* * -1 * *")).to(be_err());
-
     // Months
     expect!(parse_cron("* * * 0 *")).to(be_err());
     expect!(parse_cron("* * * 13 *")).to(be_err());
     expect!(parse_cron("* * * -1 *")).to(be_err());
-
     // Weekdays
     expect!(parse_cron("* * * * 7")).to(be_err());
     expect!(parse_cron("* * * * -1")).to(be_err());
+  }
+
+  #[test]
+  fn ranges_outside_range() {
+    // Minutes
+    expect!(parse_cron("0-60 * * * *")).to(be_err());
+    expect!(parse_cron("-1-0 * * * *")).to(be_err());
+    // Hours
+    expect!(parse_cron("* 0-24 * * *")).to(be_err());
+    expect!(parse_cron("* -1-10 * * *")).to(be_err());
+    // Days
+    expect!(parse_cron("* * 0-5 * *")).to(be_err());
+    expect!(parse_cron("* * 10-32 * *")).to(be_err());
+    expect!(parse_cron("* * -1-20 * *")).to(be_err());
+    // Months
+    expect!(parse_cron("* * * 0-5 *")).to(be_err());
+    expect!(parse_cron("* * * 6-13 *")).to(be_err());
+    expect!(parse_cron("* * * -1-12 *")).to(be_err());
+    // Weekdays
+    expect!(parse_cron("* * * * 5-7")).to(be_err());
+    expect!(parse_cron("* * * * -1-5")).to(be_err());
   }
 
   #[test]
