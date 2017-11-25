@@ -8,7 +8,7 @@
   license = "BSD-4-Clause"
   readme = "README.md"
   repository = "https://github.com/echelon/crontab.rs"
-  version = "0.1.0"
+  version = "0.2.0"
 
 [dependencies]
   time = "~0.1"
@@ -18,3 +18,4 @@
 
 [badges]
   travis-ci = { repository = "echelon/crontab.rs" }
+
