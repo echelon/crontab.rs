@@ -25,6 +25,6 @@ mod times;
 // Exports
 pub use crontab::Crontab;
 pub use parsing::ScheduleComponents;
-
+pub use error::CrontabError;
 // Re-exports.
 pub use time::Tm;
